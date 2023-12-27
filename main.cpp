@@ -25,21 +25,24 @@ public:
 
 class CounterReducer : public mapreduce::Reducer {
 public:
-    void reduce(std::string const& filepath) const override {
-        std::ifstream file(filepath);
-        std::string line;
+    void reduce(std::vector<std::string> const& filepaths) const override {
         std::unordered_map<std::string, int> counts;
-        
-        while (std::getline(file, line)) {
-            std::stringstream ss(line);
-            std::string key, value;
 
-            std::getline(ss, key, ',');
-            std::getline(ss, value);
+        for (auto const& filepath : filepaths) {
+            std::ifstream file(filepath);
+            std::string line;
+            
+            while (std::getline(file, line)) {
+                std::stringstream ss(line);
+                std::string key, value;
 
-            counts[key] += std::stoi(value);
+                std::getline(ss, key, ',');
+                std::getline(ss, value);
+
+                counts[key] += std::stoi(value);
+            }
         }
-
+        
         for (auto const& [key, value] : counts) {
             emit(key, std::to_string(value));
         }
@@ -47,19 +50,19 @@ public:
 };
 
 int main() {
-    // mapreduce::Config config;
-    // config.set_input_file("input.txt");
-    // config.set_output_file("output.txt");
+    mapreduce::Config config;
+    config.set_input_file("tests/input2.txt");
+    config.set_output_file("tests/output2.txt");
 
-    // CounterMapper mapper;
-    // CounterReducer reducer;
+    CounterMapper mapper;
+    CounterReducer reducer;
 
-    // config.set_mapper(&mapper);
-    // config.set_reducer(&reducer);
+    config.set_mapper(&mapper);
+    config.set_reducer(&reducer);
 
-    // mapreduce::map_reduce(config);
+    config.set_split_size(1);
 
-    mapreduce::split_file("tests/input.txt", 13);
+    mapreduce::map_reduce(config);
 
     return 0;
 }

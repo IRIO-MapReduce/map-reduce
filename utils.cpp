@@ -6,7 +6,7 @@
 
 namespace mapreduce {
 
-void split_file(std::string const& filepath, size_t part_size_mb) {
+size_t split_file(std::string const& filepath, size_t part_size_mb) {
     // 1 KB overhead for splitting lines
     static constexpr size_t MAX_LINE_SIZE_BYTES = 1024;
 
@@ -20,13 +20,13 @@ void split_file(std::string const& filepath, size_t part_size_mb) {
     }
 
     size_t part_size_bytes = part_size_mb * 1024 * 1024;
+    char* buffer = new char[part_size_bytes + MAX_LINE_SIZE_BYTES];
 
     std::streampos end_pos = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    char* buffer = new char[part_size_bytes + MAX_LINE_SIZE_BYTES];
-
-    for (size_t i = 0; file.tellg() < end_pos; i++) {
+    size_t num_parts;
+    for (num_parts = 0; file.tellg() < end_pos; num_parts++) {
         std::streampos cur_start = file.tellg();
         std::streamoff cur_end = cur_start + static_cast<std::streamoff>(part_size_bytes);
 
@@ -35,7 +35,6 @@ void split_file(std::string const& filepath, size_t part_size_mb) {
             cur_end = end_pos;
         }
         else {
-            std::cerr << end_pos << " " << cur_start << " " << cur_end << " -> ";
             std::string temp;
             file.seekg(cur_end);
 
@@ -50,11 +49,9 @@ void split_file(std::string const& filepath, size_t part_size_mb) {
             else {
                 cur_end = file.tellg();
             }
-
-            std::cerr << cur_end << std::endl;
         }
 
-        std::string split_filepath = filepath + "-split-" + std::to_string(i);
+        std::string split_filepath = get_split_filepath(filepath, num_parts);
         std::ofstream split_file(split_filepath, std::ios::binary);
 
         if (!split_file.is_open()) {
@@ -79,6 +76,27 @@ void split_file(std::string const& filepath, size_t part_size_mb) {
     }
 
     delete[] buffer;
+    return num_parts;
+}
+
+bool has_valid_format(std::string const& filepath) {
+    return filepath.length() >= 4 && filepath.substr(filepath.length() - 4) == ".txt";
+}
+
+std::string get_intermediate_filepath(std::string const& filepath) {
+    std::string intermediate_filepath = filepath;
+    intermediate_filepath.erase(intermediate_filepath.length() - 4);    
+    intermediate_filepath += INTERMEDIATE_FILE_SUFFIX;
+
+    return intermediate_filepath;
+}
+
+std::string get_split_filepath(std::string const& filepath, size_t split_index) {
+    std::string split_filepath = filepath;
+    split_filepath.erase(split_filepath.length() - 4);
+    split_filepath += "-split-" + std::to_string(split_index) + ".txt";
+
+    return split_filepath;
 }
 
 } // mapreduce
