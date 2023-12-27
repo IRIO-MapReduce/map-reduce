@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "mapreduce.h"
+#include "utils.h"
 
 namespace mapreduce {
     

@@ -5,8 +5,6 @@
 
 namespace mapreduce {
 
-const std::string INTERMEDIATE_FILE_SUFFIX = "-intermediate.txt";
-
 using key_t = std::string;
 using value_t = std::string;
 

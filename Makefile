@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall
-SRC_FILES = main.cpp mapreduce.cpp
+SRC_FILES = main.cpp mapreduce.cpp utils.cpp
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 EXECUTABLE = main
 

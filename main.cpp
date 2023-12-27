@@ -1,8 +1,9 @@
-#include "mapreduce.h"
-
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+
+#include "mapreduce.h"
+#include "utils.h"
 
 class CounterMapper : public mapreduce::Mapper {
 public:
@@ -46,17 +47,19 @@ public:
 };
 
 int main() {
-    mapreduce::Config config;
-    config.set_input_file("input.txt");
-    config.set_output_file("output.txt");
+    // mapreduce::Config config;
+    // config.set_input_file("input.txt");
+    // config.set_output_file("output.txt");
 
-    CounterMapper mapper;
-    CounterReducer reducer;
+    // CounterMapper mapper;
+    // CounterReducer reducer;
 
-    config.set_mapper(&mapper);
-    config.set_reducer(&reducer);
+    // config.set_mapper(&mapper);
+    // config.set_reducer(&reducer);
 
-    mapreduce::map_reduce(config);
+    // mapreduce::map_reduce(config);
+
+    mapreduce::split_file("tests/input.txt", 13);
 
     return 0;
 }
