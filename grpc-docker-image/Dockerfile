@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     libtool \
     pkg-config \
     git \
+    protobuf-compiler \
     && apt-get clean
 
 ENV GRPC_INSTALL_DIR /usr/local
