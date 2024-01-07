@@ -24,10 +24,20 @@ void Config::set_reducer(Reducer *reducer) { this->reducer = reducer; }
 void Config::set_split_size(size_t split_size_mb) { this->split_size_mb = split_size_mb; }
 
 void map_reduce(Config const& config) {
+    std::cerr << "map_reduce() call begins" << std::endl;
     auto *mapper = config.mapper;
     auto *reducer = config.reducer;
 
-    size_t num_parts = split_file(config.input_filepath, config.split_size_mb);
+    size_t num_parts;
+    try {
+        num_parts = split_file(config.input_filepath, config.split_size_mb);
+    } catch (const std::exception& e) {
+        std::cerr << "split_file failed with exception: " << e.what() << std::endl;
+        throw;
+    } catch (...) {
+        std::cerr << "Unknown error" << std::endl;
+    }
+
 
     std::cerr << "Starting map phase...\n";
 
