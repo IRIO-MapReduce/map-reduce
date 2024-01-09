@@ -1,26 +1,16 @@
-#include <grpc++/grpc++.h>
-#include "mapreduce.grpc.pb.h"
-
-void RunClient() {
-    std::string target("localhost:50051");
-    mapreduce::Server::Stub stub(grpc::CreateChannel(target, grpc::InsecureChannelCredentials()));
-
-    mapreduce::Request request;
-    mapreduce::Reply reply;
-
-    request.set_filename("input.txt");
-    grpc::ClientContext context;
-
-    grpc::Status status = stub.MapReduce(&context, request, &reply);
-
-    if (status.ok()) {
-        std::cout << "Received reply: " << reply.filename() << std::endl;
-    } else {
-        std::cerr << "RPC failed: " << status.error_code() << ": " << status.error_message() << std::endl;
-    }
-}
+#include "../common/mapreduce.h"
+#include "../common/utils.h"
 
 int main() {
-    RunClient();
+    // Set up config before running!!
+    mapreduce::Config config;
+    config.set_input_filepath("../../fs/input.txt");
+    config.set_mapper_execpath("../../test_mapper/build/test_mapper");
+    config.set_reducer_execpath("/path/to/reducer");
+    config.set_split_size_bytes(1);
+    config.set_num_reducers(3);
+
+    mapreduce::map_reduce(config);
+
     return 0;
 }

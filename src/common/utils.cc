@@ -6,11 +6,11 @@
 
 namespace mapreduce {
 
-size_t split_file(std::string const& filepath, size_t part_size_mb) {
+size_t split_file_bytes(std::string const& filepath, size_t part_size_bytes) {
     // 1 KB overhead for splitting lines
     static constexpr size_t MAX_LINE_SIZE_BYTES = 1024;
 
-    if (part_size_mb == 0) {
+    if (part_size_bytes == 0) {
         throw std::invalid_argument("part_size_mb must be greater than 0");
     }
 
@@ -19,7 +19,6 @@ size_t split_file(std::string const& filepath, size_t part_size_mb) {
         throw std::invalid_argument("could not open file");
     }
 
-    size_t part_size_bytes = part_size_mb * 1024 * 1024;
     char* buffer = new char[part_size_bytes + MAX_LINE_SIZE_BYTES];
 
     std::streampos end_pos = file.tellg();
@@ -83,19 +82,17 @@ bool has_valid_format(std::string const& filepath) {
     return filepath.length() >= 4 && filepath.substr(filepath.length() - 4) == ".txt";
 }
 
-std::string get_intermediate_filepath(std::string const& filepath) {
+std::string get_intermediate_filepath(std::string const& filepath, size_t index) {
     std::string intermediate_filepath = filepath;
     intermediate_filepath.erase(intermediate_filepath.length() - 4);    
-    intermediate_filepath += INTERMEDIATE_FILE_SUFFIX;
-
+    intermediate_filepath += "-intermediate-" + std::to_string(index) + ".txt";
     return intermediate_filepath;
 }
 
-std::string get_split_filepath(std::string const& filepath, size_t split_index) {
+std::string get_split_filepath(std::string const& filepath, size_t index) {
     std::string split_filepath = filepath;
     split_filepath.erase(split_filepath.length() - 4);
-    split_filepath += "-split-" + std::to_string(split_index) + ".txt";
-
+    split_filepath += "-split-" + std::to_string(index) + ".txt";
     return split_filepath;
 }
 

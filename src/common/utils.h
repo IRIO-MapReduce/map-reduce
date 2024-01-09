@@ -5,14 +5,15 @@
 
 namespace mapreduce {
 
-const std::string INTERMEDIATE_FILE_SUFFIX = "-intermediate.txt";
+using key_t = std::string;
+using val_t = std::string;
 
 /**
  * Splits a file into multiple files of aprroximately a given size. 
  * Idividual lines are not split. The last file may be significantly smaller than the given size.
  * Returns the number of files created.
 */
-size_t split_file(std::string const& filepath, size_t part_size_mb);
+size_t split_file_bytes(std::string const& filepath, size_t part_size_bytes);
 
 /**
  * Checks if a filepath has a valid format.
@@ -21,14 +22,14 @@ size_t split_file(std::string const& filepath, size_t part_size_mb);
 bool has_valid_format(std::string const& filepath);
 
 /**
- * Returns the filepath of the intermediate file for a given filepath.
+ * Returns the filepath of the intermediate file for a given filepath and index.
 */
-std::string get_intermediate_filepath(std::string const& filepath);
+std::string get_intermediate_filepath(std::string const& filepath, size_t index);
 
 /**
- * Returns the filepath of the split file for a given filepath and split index.
+ * Returns the filepath of the split file for a given filepath and  index.
 */
-std::string get_split_filepath(std::string const& filepath, size_t split_index);
+std::string get_split_filepath(std::string const& filepath, size_t index);
 
 } // mapreduce
 
