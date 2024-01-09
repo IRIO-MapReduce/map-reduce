@@ -41,3 +41,13 @@ After the testing is finished, stop the master container.
 docker container ls # copy the container id of the mapreduce-master container
 docker stop [Copied container id]
 ```
+
+## Kubernetes
+
+*  install kubectl
+* install minikube
+* minikube start
+* minikube image load mapreduce-master:latest
+* kubectl apply -f mapreduce-deployment.yml
+* kubectl expose deployment mapreduce --port=50051 --name mapreduce
+* kubectl port-forward [pod-id] localhost:50051

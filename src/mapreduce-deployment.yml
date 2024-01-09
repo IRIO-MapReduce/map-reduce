@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapreduce
+spec:
+  selector:
+    matchLabels:
+      app: mapreduce
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mapreduce
+    spec:
+      containers:
+        - name: mapreduce
+          image: docker.io/library/mapreduce-master:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 50051
