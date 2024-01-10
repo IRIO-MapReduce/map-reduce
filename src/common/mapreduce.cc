@@ -22,6 +22,7 @@ void map_reduce(Config const& config) {
 
     ClientRequest request;
     request.set_input_filepath(config.input_filepath);
+    request.set_output_filepath(config.output_filepath);
     request.set_mapper_execpath(config.mapper_execpath);
     request.set_reducer_execpath(config.reducer_execpath);
     request.set_split_size_bytes(config.split_size_bytes);

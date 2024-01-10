@@ -21,6 +21,10 @@ public:
         this->input_filepath = filepath;
     }
 
+    inline void set_output_filepath(std::string const& filepath) noexcept {
+        this->output_filepath = filepath;
+    }
+
     inline void set_mapper_execpath(std::string const& execpath) noexcept {
         this->mapper_execpath = execpath;
     }
@@ -51,6 +55,7 @@ public:
 
 private:
     std::string input_filepath;
+    std::string output_filepath;
     std::string mapper_execpath;
     std::string reducer_execpath;
     size_t split_size_bytes;

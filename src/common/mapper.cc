@@ -63,8 +63,8 @@ void Mapper::start() {
 
     assert(status.ok());
 
-    set_input_filepath(config.filepath());
-    set_num_reducers(config.num_reducers());
+    this->input_filepath = config.filepath();
+    this->num_reducers = config.num_reducers();
 
     std::cerr << "[MAPPER WORKER] Worker info retrieved, starting map..." << std::endl;
 

@@ -28,6 +28,7 @@ public:
     Status ProcessClientRequest(ServerContext* context, const ClientRequest* request, Response* response) override {
         std::cerr << "[MASTER] Received ClientRequest." << std::endl;
         std::cerr << " ---------------  input_filepath: " << request->input_filepath() << std::endl;
+        std::cerr << " ---------------  output_filepath: " << request->output_filepath() << std::endl;
         std::cerr << " ---------------  mapper_execpath: " << request->mapper_execpath() << std::endl;
         std::cerr << " ---------------  reducer_execpath: " << request->reducer_execpath() << std::endl;
         std::cerr << " ---------------  num_reducers: " << request->num_reducers() << std::endl;
@@ -44,8 +45,9 @@ public:
         }
 
         // Files to be sent to reducers
-        // std::vector<std::vector<std::string>> intermediate_files(request->num_reducers(), std::vector<std::string>(n_parts));
+        std::vector<std::vector<std::string>> intermediate_files(request->num_reducers(), std::vector<std::string>(n_parts));
 
+        // Send requests to mappers
         for (size_t i = 0; i < n_parts; i++) {
             std::string part_filepath = get_split_filepath(request->input_filepath(), i);
 
@@ -70,10 +72,52 @@ public:
 
             std::cerr << "[MASTER] Received response from MapperListener." << std::endl;
 
-            // for (size_t j = 0; j < request->num_reducers(); j++) {
-            //     intermediate_files[j][i] = get_intermediate_filepath(part_filepath, j);
-            // }
+            for (size_t j = 0; j < request->num_reducers(); j++) {
+                intermediate_files[j][i] = get_intermediate_filepath(part_filepath, j);
+            }
         }
+
+        // Wait for mappers to end lol
+        // [TODO] Change it for async waiting on mappers responses, and
+        //  ----  send ReduceRequests as soon as all mappers finish.
+        sleep(3);
+
+        for (uint32_t i = 0; i < request->num_reducers(); i++) {
+            std::cerr << "[MASTER] Sending ReduceRequest to ReducerListener." << std::endl;
+
+            std::string reducer_listener_address(REDUCER_LISTENER_ADDRESS);
+
+            std::unique_ptr<ReducerListener::Stub> reducer_listener_stub(ReducerListener::NewStub(
+                grpc::CreateChannel(reducer_listener_address, grpc::InsecureChannelCredentials())
+            ));
+
+            Response reducer_response;
+
+            grpc::ClientContext context;
+            std::shared_ptr<grpc::ClientWriter<ReduceRequest>> writer(
+                reducer_listener_stub->ProcessReduceRequest(&context, &reducer_response));
+
+            ReduceRequest reduce_request;
+            reduce_request.set_execpath(request->reducer_execpath());
+            reduce_request.set_output_filepath(request->output_filepath()); // [TODO] Change!!!!
+
+            for (auto const& filepath : intermediate_files[i]) {
+                reduce_request.set_input_filepath(filepath);
+
+                std::cerr << "[MASTER] Passing filepath: " << filepath << std::endl;
+
+                assert (writer->Write(reduce_request));
+            }
+
+            std::cerr << "[MASTER] Done sending ReduceRequests to that one listener" << std::endl;
+
+            writer->WritesDone();
+            grpc::Status status = writer->Finish();
+
+            assert(status.ok());
+        }
+
+        std::cerr << "[MASTER] Job done" << std::endl;
 
         return Status::OK;
     }
