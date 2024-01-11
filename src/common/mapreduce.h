@@ -8,44 +8,58 @@ namespace mapreduce {
 
 constexpr size_t DEFAULT_SPLIT_SIZE_MB = 32;
 
-using key_t = std::string;
-using value_t = std::string;
+const std::string MASTER_ADDRESS = "0.0.0.0:50051";
+const std::string MAPPER_ADDRESS = "0.0.0.0:50052";
+const std::string REDUCER_ADDRESS = "0.0.0.0:50053";
 
-class Worker {
-public:
-    void set_emit_file(std::string const& filepath);
-
-protected:
-    void emit(key_t const& key, value_t const& value) const;
-
-private:
-    std::string output_filepath;
-};
-
-class Mapper : public Worker {
-public:
-    virtual void map(std::string const& filepath) const = 0;
-};
-
-class Reducer : public Worker {
-public:
-    virtual void reduce(std::vector<std::string> const& filepaths) const = 0;
-};
+const std::string MAPPER_LISTENER_ADDRESS = "0.0.0.0:50054";
+const std::string REDUCER_LISTENER_ADDRESS = "0.0.0.0:50055";
 
 class Config {
 public:
-    void set_input_file(std::string const& filepath);
-    void set_output_file(std::string const& filepath);
-    void set_mapper(Mapper *mapper);
-    void set_reducer(Reducer *reducer);
-    void set_split_size(size_t split_size_mb);
+    inline void set_input_filepath(std::string const& filepath) noexcept {
+        this->input_filepath = filepath;
+    }
+
+    inline void set_output_filepath(std::string const& filepath) noexcept {
+        this->output_filepath = filepath;
+    }
+
+    inline void set_mapper_execpath(std::string const& execpath) noexcept {
+        this->mapper_execpath = execpath;
+    }
+
+    inline void set_reducer_execpath(std::string const& execpath) noexcept {
+        this->reducer_execpath = execpath;
+    }
+
+    inline void set_split_size_bytes(size_t split_size_bytes) noexcept {
+        this->split_size_bytes = split_size_bytes;
+    }
+
+    inline void set_split_size_kb(size_t split_size_kb) noexcept { 
+        set_split_size_bytes(split_size_kb * 1024);
+    }
+
+    inline void set_split_size_mb(size_t split_size_mb) noexcept {
+        set_split_size_bytes(split_size_mb * 1024 * 1024);
+    }
+
+    inline void set_split_size(size_t split_size_mb) noexcept {
+        set_split_size_mb(split_size_mb);
+    }
+
+    inline void set_num_reducers(uint32_t num_reducers) noexcept {
+        this->num_reducers = num_reducers;
+    }
 
 private:
     std::string input_filepath;
     std::string output_filepath;
-    Mapper *mapper;
-    Reducer *reducer;
-    size_t split_size_mb;
+    std::string mapper_execpath;
+    std::string reducer_execpath;
+    size_t split_size_bytes;
+    uint32_t num_reducers;
 
     friend void map_reduce(Config const& config);
 };

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(mapreduce-client)
+project(test_reducer)
 
 find_package(absl REQUIRED)
 find_package(Protobuf REQUIRED CONFIG)
@@ -36,10 +36,11 @@ add_library(grpc_mapreduce_proto
     ${GENERATED_DIR}/mapreduce.grpc.pb.cc
 )
 
-add_executable(test_client test_client.cc)
-target_link_libraries(test_client PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+add_executable(test_reducer test_reducer.cc)
+target_link_libraries(test_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
 
-target_include_directories(test_client PRIVATE ${GENERATED_DIR})
-target_include_directories(test_client PRIVATE ../common)
-target_sources(test_client PRIVATE ../common/utils.cc)
-target_sources(test_client PRIVATE ../common/mapreduce.cc)
+target_include_directories(test_reducer PRIVATE ${GENERATED_DIR})
+target_include_directories(test_reducer PRIVATE ../common)
+target_sources(test_reducer PRIVATE ../common/utils.cc)
+target_sources(test_reducer PRIVATE ../common/mapreduce.cc)
+target_sources(test_reducer PRIVATE ../common/reducer.cc)
