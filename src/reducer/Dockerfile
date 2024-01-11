@@ -18,7 +18,7 @@ COPY --from=build /w/reducer/build/main /r/
 
 EXPOSE 50051
 
-CMD [ "/r/main" ]
+CMD [ "/r/main", "2>", "/fs/err.txt" ]
 
 
 

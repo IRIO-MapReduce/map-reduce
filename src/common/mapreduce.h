@@ -12,7 +12,7 @@ const std::string MASTER_ADDRESS = "0.0.0.0:50051";
 const std::string MAPPER_ADDRESS = "0.0.0.0:50052";
 const std::string REDUCER_ADDRESS = "0.0.0.0:50053";
 
-const std::string MAPPER_LISTENER_ADDRESS = "0.0.0.0:50054";
+const std::string MAPPER_LISTENER_ADDRESS = "mapper-service:50054";
 const std::string REDUCER_LISTENER_ADDRESS = "0.0.0.0:50055";
 
 class Config {

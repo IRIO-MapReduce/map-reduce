@@ -16,7 +16,7 @@ cd src/
 
 Build the master image.
 ```bash
-docker build -t mapreduce-master:latest -f master/Dockerflie .
+docker build -t mapreduce-master:latest -f master/Dockerfile .
 ```
 
 Build the mapper image.
