@@ -2,7 +2,7 @@ FROM grpc-cpp-image:latest AS build
 
 COPY . /w
 
-WORKDIR /w/master
+WORKDIR /w/mapper
 
 RUN mkdir build
 
@@ -14,7 +14,7 @@ RUN make
 
 FROM debian:11
 
-COPY --from=build /w/master/build/main /r/
+COPY --from=build /w/mapper/build/main /r/
 
 EXPOSE 50051
 

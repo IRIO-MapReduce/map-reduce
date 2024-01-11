@@ -14,9 +14,19 @@ Then build the project.
 cd src/
 ```
 
-Build the master container.
+Build the master image.
 ```bash
 docker build -t mapreduce-master:latest -f master/Dockerflie .
+```
+
+Build the mapper image.
+```bash
+docker build -t mapreduce-mapper:latest -f mapper/Dockerfile .
+```
+
+Build the reducer image.
+```bash
+docker build -t mapreduce-reducer:latest -f reducer/Dockerfile .
 ```
 
 Build the testing client.
@@ -42,12 +52,13 @@ docker container ls # copy the container id of the mapreduce-master container
 docker stop [Copied container id]
 ```
 
-## Kubernetes
+## Kubernetes (locally)
 
 *  install kubectl
 * install minikube
 * minikube start
 * minikube image load mapreduce-master:latest
+* minikube image load mapreduce-mapper:latest
+* minikube image load mapreduce-reducer:latest
 * kubectl apply -f mapreduce-deployment.yml
-* kubectl expose deployment mapreduce --port=50051 --name mapreduce
-* kubectl port-forward [pod-id] localhost:50051
+* kubectl port-forward [pod-id] 50051:50051

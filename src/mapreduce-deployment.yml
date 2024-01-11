@@ -1,20 +1,67 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mapreduce
+  name: master
 spec:
   selector:
     matchLabels:
-      app: mapreduce
+      app: master
   replicas: 1
   template:
     metadata:
       labels:
-        app: mapreduce
+        app: master
     spec:
+      volumes:
+      - name: task-pv-storage
+        persistentVolumeClaim:
+          claimName: task-pv-claim
       containers:
-        - name: mapreduce
+        - name: master
           image: docker.io/library/mapreduce-master:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 50051
+          volumeMounts:
+            - mountPath: "/fs"
+              name: task-pv-storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mappers
+spec:
+  selector:
+    matchLabels:
+      app: mappers
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mappers
+    spec:
+      volumes:
+      - name: task-pv-storage
+        persistentVolumeClaim:
+          claimName: task-pv-claim
+      containers:
+        - name: mapper
+          image: docker.io/library/mapreduce-mapper:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 50051
+          volumeMounts:
+            - mountPath: "/fs"
+              name: task-pv-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: master-service
+spec:
+  selector:
+    app.kubernetes.io/name: master
+  ports:
+    - protocol: TCP
+      port: 50051
+      targetPort: 50051
