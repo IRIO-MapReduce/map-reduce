@@ -2,7 +2,7 @@ FROM grpc-cpp-image:latest AS build
 
 COPY . /w
 
-WORKDIR /w/tests
+WORKDIR /w/mapper
 
 RUN mkdir build
 
@@ -13,10 +13,12 @@ RUN cmake ..
 RUN make
 
 FROM debian:12
-COPY --from=build /w/tests/build/test_client /r/
+COPY --from=build /w/mapper/build/main /r/
+COPY --from=build /w/fs /fs
 
-CMD [ "/r/test_client" ]
+EXPOSE 50054
 
+CMD [ "/r/main" ]
 
 
 

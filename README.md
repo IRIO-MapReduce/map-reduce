@@ -16,7 +16,7 @@ cd src/
 
 Build the master container.
 ```bash
-docker build -t mapreduce-master:latest -f master/Dockerflie .
+docker build -t mapreduce-master:latest -f master/Dockerfile .
 ```
 
 Build the testing client.

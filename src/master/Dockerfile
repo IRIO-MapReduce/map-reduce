@@ -12,7 +12,7 @@ RUN cmake ..
 
 RUN make
 
-FROM debian:11
+FROM debian:12
 COPY --from=build /w/master/build/main /r/
 COPY --from=build /w/fs /fs
 
