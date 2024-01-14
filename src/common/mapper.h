@@ -21,7 +21,7 @@ public:
     /**
      * Notifies the system that it is ready to start working, retrieves necessary info and runs map().
     */
-    void start();
+    void start(int argc, char** argv);
 
 protected:
 
@@ -39,6 +39,7 @@ protected:
     void emit(key_t const& key, val_t const& value);
 
 private:
+    req_id_t id;
     uint32_t num_reducers;
     std::string input_filepath;
     std::fstream input_file;

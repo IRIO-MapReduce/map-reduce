@@ -15,11 +15,11 @@ public:
     }
 };
 
-int main() {
+int main(int argc, char** argv) {
     std::cout << "[REDUCER WORKER] Starting binary" << std::endl;
-    SimpleReducer mapper;
+    SimpleReducer reducer;
 
-    mapper.start();
+    reducer.start(argc, argv);
     
     return 0;
 }

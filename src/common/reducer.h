@@ -22,7 +22,7 @@ public:
     /**
      * Notifies the system that it is ready to start working, retrieves necessary info and runs reduce().
     */
-    void start();
+    void start(int argc, char** argv);
 
 protected:
     /**
@@ -39,6 +39,7 @@ protected:
     void emit(key_t const& key, val_t const& value);
 
 private:
+    req_id_t id;
     std::string output_filepath;
     std::vector<std::string> input_filepaths;
     std::fstream input_file;

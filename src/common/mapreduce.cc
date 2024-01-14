@@ -20,12 +20,14 @@ void map_reduce(Config const& config) {
     std::shared_ptr<Channel> channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<Master::Stub> masterStub = Master::NewStub(channel);
 
+    size_t num_mappers = split_file_bytes(config.input_filepath, config.split_size_bytes);
+
     ClientRequest request;
     request.set_input_filepath(config.input_filepath);
     request.set_output_filepath(config.output_filepath);
     request.set_mapper_execpath(config.mapper_execpath);
     request.set_reducer_execpath(config.reducer_execpath);
-    request.set_split_size_bytes(config.split_size_bytes);
+    request.set_num_mappers(num_mappers);
     request.set_num_reducers(config.num_reducers);
 
     ClientContext context;

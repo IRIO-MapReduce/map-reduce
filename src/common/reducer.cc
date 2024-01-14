@@ -50,7 +50,8 @@ void Reducer::emit(key_t const& key, val_t const& val) {
     output_file << key + "," + val + "\n";  
 }
 
-void Reducer::start() {
+void Reducer::start(int argc, char** argv) {
+    assert(argc == 1);
     std::cerr << "[REDUCER WORKER] Starting worker..." << std::endl;
 
     std::string reducer_listener_address(REDUCER_LISTENER_ADDRESS);
@@ -58,7 +59,7 @@ void Reducer::start() {
     std::unique_ptr<ReducerListener::Stub> stub = ReducerListener::NewStub(channel);
 
     ReduceConfigRequest request;
-    request.set_nothing("nothing");
+    request.set_execpath(argv[0]);
 
     ClientContext context;
     ReduceConfig config;
@@ -67,27 +68,40 @@ void Reducer::start() {
 
     std::unique_ptr<grpc::ClientReader<ReduceConfig>> reader(
         stub->GetReduceConfig(&context, request));
-
     
     while (reader->Read(&config)) {
         std::cerr << "[REDUCER WORKER] Received ReduceConfig from listener" << std::endl;
         std::cerr << " ---------------  input_filepath: " << config.input_filepath() << std::endl;
         std::cerr << " ---------------  output_filepath: " << config.output_filepath() << std::endl;
 
+        this->id = config.id();
         this->input_filepaths.push_back(config.input_filepath());
         this->output_filepath = config.output_filepath();
     }
 
-    std::cerr << "[REDUCER WORKER] Starting reduce()" << std::endl;
-
-    reduce();
-        
-    std::cerr << "[REDUCER WORKER] Finished reduce()" << std::endl;
-
     Status status = reader->Finish();
     assert(status.ok());
 
-    std::cerr << "[REDUCER WORKER] Finished all work" << std::endl;
+    std::cerr << "[REDUCER WORKER] Starting reduce()" << std::endl;
+
+    reduce();
+
+    std::string master_address(MASTER_ADDRESS);
+    std::shared_ptr<Channel> master_channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
+    std::unique_ptr<Master::Stub> master_stub = Master::NewStub(master_channel);
+
+    ClientContext master_context;
+    JobId job_id;
+    job_id.set_id(this->id);
+    Response response;
+
+    std::cerr << "[REDUCER WORKER] Sending ReduceCompleted to master" << std::endl;
+
+    Status master_status = master_stub->NotifyReduceFinished(&master_context, job_id, &response);
+
+    assert(master_status.ok());
+        
+    std::cerr << "[REDUCER WORKER] Reduce completed!" << std::endl;
 }
     
 

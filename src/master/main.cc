@@ -3,10 +3,12 @@
 #include <iostream>
 #include <unordered_map>
 #include <grpc++/grpc++.h>
+#include <latch>
 #include "mapreduce.grpc.pb.h"
 
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
+#include "../common/data-structures.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -31,30 +33,26 @@ public:
         std::cerr << " ---------------  output_filepath: " << request->output_filepath() << std::endl;
         std::cerr << " ---------------  mapper_execpath: " << request->mapper_execpath() << std::endl;
         std::cerr << " ---------------  reducer_execpath: " << request->reducer_execpath() << std::endl;
+        std::cerr << " ---------------  num_mappers: " << request->num_mappers() << std::endl;
         std::cerr << " ---------------  num_reducers: " << request->num_reducers() << std::endl;
-        std::cerr << " ---------------  split_size_bytes: " << request->split_size_bytes() << std::endl;
         
-        size_t n_parts;
-        try {
-            n_parts = split_file_bytes(request->input_filepath(), request->split_size_bytes());
-        } 
-        catch (...) {
-            std::cerr << "Error splitting file" << std::endl;
-            response->set_result("Error splitting file");
-            return Status::CANCELLED;
-        }
+        auto client_req_id = client_id.get_next();
+        auto& request_info = client_requests.add_request(client_req_id, *request);
 
         // Files to be sent to reducers
-        std::vector<std::vector<std::string>> intermediate_files(request->num_reducers(), std::vector<std::string>(n_parts));
+        std::vector<std::vector<std::string>> intermediate_files(request->num_reducers(), std::vector<std::string>(request->num_mappers()));
 
         // Send requests to mappers
-        for (size_t i = 0; i < n_parts; i++) {
+        for (size_t i = 0; i < request->num_mappers(); i++) {
             std::string part_filepath = get_split_filepath(request->input_filepath(), i);
 
             MapRequest map_request;
+            map_request.set_id(make_req_id(client_req_id, i));
             map_request.set_filepath(part_filepath);
             map_request.set_execpath(request->mapper_execpath());
             map_request.set_num_reducers(request->num_reducers());
+            
+            request_info.add_mapper_job(map_request);
 
             std::string mapper_listener_address(MAPPER_LISTENER_ADDRESS);
             
@@ -77,10 +75,11 @@ public:
             }
         }
 
-        // Wait for mappers to end lol
-        // [TODO] Change it for async waiting on mappers responses, and
-        //  ----  send ReduceRequests as soon as all mappers finish.
-        sleep(3);
+        std::cerr << "[MASTER] Map phase complete, waiting for mappers to finish." << std::endl;
+        
+        request_info.wait_for_map();
+        
+        std::cerr << "[MASTER] Mappers finished, starting Reduce phase" << std::endl;
 
         for (uint32_t i = 0; i < request->num_reducers(); i++) {
             std::cerr << "[MASTER] Sending ReduceRequest to ReducerListener." << std::endl;
@@ -98,8 +97,9 @@ public:
                 reducer_listener_stub->ProcessReduceRequest(&context, &reducer_response));
 
             ReduceRequest reduce_request;
+            reduce_request.set_id(make_req_id(client_req_id, i));
             reduce_request.set_execpath(request->reducer_execpath());
-            reduce_request.set_output_filepath(request->output_filepath()); // [TODO] Change!!!!
+            reduce_request.set_output_filepath(request->output_filepath());
 
             for (auto const& filepath : intermediate_files[i]) {
                 reduce_request.set_input_filepath(filepath);
@@ -117,10 +117,41 @@ public:
             assert(status.ok());
         }
 
+        std::cerr << "[MASTER] Reduce phase complete, waiting for reducers to finish." << std::endl;
+
+        request_info.wait_for_reduce();
+
         std::cerr << "[MASTER] Job done" << std::endl;
 
         return Status::OK;
     }
+
+    Status NotifyMapFinished(ServerContext* context, const JobId* job_id, Response* response) override {
+        std::cerr << "[MASTER] Received MapFinished Notification." << std::endl;
+        std::cerr << " ---------------  id: " << job_id->id() << std::endl;
+
+        auto [client_id, map_id] = extract_ids(job_id->id());
+        auto &request_info = client_requests.get_request_info(client_id);
+        request_info.complete_mapper_job(map_id);
+
+        return Status::OK;
+    }
+
+    Status NotifyReduceFinished(ServerContext* context, const JobId* job_id, Response* response) override {
+        std::cerr << "[MASTER] Received ReduceFinished Notification." << std::endl;
+        std::cerr << " ---------------  id: " << job_id->id() << std::endl;
+
+        auto [client_id, reduce_id] = extract_ids(job_id->id());
+        auto &request_info = client_requests.get_request_info(client_id);
+        request_info.complete_reducer_job(reduce_id);
+
+        return Status::OK;
+    }
+
+private:
+    Identifier client_id;
+
+    ClientRequestQueue client_requests;
 };
 
 void RunMasterServer() {

@@ -15,11 +15,11 @@ public:
     }
 };
 
-int main() {
+int main(int argc, char** argv) {
     std::cout << "[MAPPER WORKER] Starting binary" << std::endl;
     SimpleMapper mapper;
 
-    mapper.start();
+    mapper.start(argc, argv);
     
     return 0;
 }

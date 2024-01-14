@@ -44,7 +44,8 @@ void Mapper::emit(key_t const& key, val_t const& val) {
     output_file << key + "," + val + "\n";
 }
 
-void Mapper::start() {
+void Mapper::start(int argc, char** argv) {
+    assert(argc == 1);
     std::cerr << "[MAPPER WORKER] Starting worker..." << std::endl;
 
     std::string mapper_listener_address(MAPPER_LISTENER_ADDRESS);
@@ -52,7 +53,7 @@ void Mapper::start() {
     std::unique_ptr<MapperListener::Stub> stub = MapperListener::NewStub(channel);
 
     MapConfigRequest request;
-    request.set_nothing("nothing");
+    request.set_execpath(argv[0]);
 
     ClientContext context;
     MapConfig config;
@@ -63,12 +64,28 @@ void Mapper::start() {
 
     assert(status.ok());
 
+    this->id = config.id();
     this->input_filepath = config.filepath();
     this->num_reducers = config.num_reducers();
 
     std::cerr << "[MAPPER WORKER] Worker info retrieved, starting map..." << std::endl;
 
     map();
+
+    std::string master_address(MASTER_ADDRESS);
+    std::shared_ptr<Channel> master_channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
+    std::unique_ptr<Master::Stub> master_stub = Master::NewStub(master_channel);
+
+    ClientContext master_context;
+    JobId job_id;
+    job_id.set_id(this->id);
+    Response response;
+
+    std::cerr << "[MAPPER WORKER] Sending MapCompleted to master" << std::endl;
+
+    status = master_stub->NotifyMapFinished(&master_context, job_id, &response);
+
+    assert(status.ok());
     
     std::cerr << "[MAPPER WORKER] Map completed!" << std::endl;
 }

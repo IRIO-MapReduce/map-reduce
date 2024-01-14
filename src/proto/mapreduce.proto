@@ -4,6 +4,8 @@ package mapreduce;
 
 service Master {
     rpc ProcessClientRequest (ClientRequest) returns (Response);
+    rpc NotifyMapFinished (JobId) returns (Response);
+    rpc NotifyReduceFinished (JobId) returns (Response);
 }
 
 service MapperListener {
@@ -21,45 +23,53 @@ message ClientRequest {
     string output_filepath = 2;
     string mapper_execpath = 3;
     string reducer_execpath = 4;
-    uint64 split_size_bytes = 5;
+    uint32 num_mappers = 5;
     uint32 num_reducers = 6;
 }
 
 // Should include only one execpath/output_filepath and multiple input_filepaths.
 // Stream will contain redundant information (multiple execpaths/output_filepaths).
 message ReduceRequest {
-    string input_filepath = 1;
-    string execpath = 2;
-    string output_filepath = 3; 
+    uint64 id = 1;
+    string input_filepath = 2;
+    string execpath = 3;
+    string output_filepath = 4; 
 }
 
 message MapRequest {
-    string filepath = 1;
-    string execpath = 2;
-    uint32 num_reducers = 3;
+    uint64 id = 1;
+    string filepath = 2;
+    string execpath = 3;
+    uint32 num_reducers = 4;
 }
 
 message MapConfigRequest {
     // Later probably id of map request or sth.
-    string nothing = 1;
+    string execpath = 1;
 }
 
 message ReduceConfigRequest {
     // Later probably id of map request or sth.
-    string nothing = 1;
+    string execpath = 1;
 }
 
 message MapConfig {
-    string filepath = 1;
-    uint32 num_reducers = 2;
+    uint64 id = 1;
+    string filepath = 2;
+    uint32 num_reducers = 3;
 }
 
 // Config should include only one output_filepath and multiple input_filepaths
 // That means, (stream ReduceConfig) will contain redundant information (multiple output_filepaths).
 // [TODO] Maybe find better solution.
 message ReduceConfig {
-    string input_filepath = 1;
-    string output_filepath = 2;
+    uint64 id = 1;
+    string input_filepath = 2;
+    string output_filepath = 3;
+}
+
+message JobId {
+    uint64 id = 1;
 }
 
 message Response {

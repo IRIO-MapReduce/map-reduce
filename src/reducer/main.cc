@@ -7,6 +7,7 @@
 
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
+#include "../common/data-structures.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -25,32 +26,32 @@ using grpc::ServerWriter;
 
 using namespace mapreduce;
 
-std::vector<std::string> last_input_filepaths;
-std::string last_execpath;
-std::string last_output_filepath;
-
 class ReducerListenerServiceImpl final : public ReducerListener::Service {
 public:
     Status ProcessReduceRequest(ServerContext* context, ServerReader<ReduceRequest>* reader, Response* response) override {
         std::cerr << "[REDUCER LISTENER] Received ReduceRequest." << std::endl;
         
-        last_input_filepaths.clear();
-
+        std::vector<ReduceConfig> configs;
         ReduceRequest request;
+
         int iter = 0;
         while (reader->Read(&request)) {
+            ReduceConfig config;
+            config.set_id(request.id());
+            config.set_input_filepath(request.input_filepath());
+            config.set_output_filepath(request.output_filepath());
+            configs.push_back(config);
             std::cerr << " ----------------  filepath " << iter++ << ": " << request.input_filepath() << std::endl;
-            last_input_filepaths.push_back(request.input_filepath());
         }
 
         std::cerr << " ----------------  execpath: " << request.execpath() << std::endl;
         std::cerr << " ----------------  output_filepath: " << request.output_filepath() << std::endl;
 
-        last_execpath = request.execpath();
-        last_output_filepath = request.output_filepath();
+        // Save config for later.
+        work_queue.add(request.execpath(), configs);
 
-        // Run mapper binary
-        std::system(request.execpath().c_str());
+        // Run reducer binary
+        std::system(std::string(request.execpath() + " &").c_str());
 
         return Status::OK;
     }
@@ -59,16 +60,17 @@ public:
         std::cerr << "[REDUCER LISTENER] Received ReduceConfig request." << std::endl;
         
         // Respond with saved config.
-        ReduceConfig config;
-        config.set_output_filepath(last_output_filepath);
+        std::vector<ReduceConfig> configs = work_queue.get_one(request->execpath());
 
-        for (auto const& filepath : last_input_filepaths) {
-            config.set_input_filepath(filepath);
+        for (auto const& config : configs) {
             writer->Write(config);
         }
 
         return Status::OK;
     }
+
+private:
+    ListenerWorkQueue<std::vector<ReduceConfig>> work_queue;
 };
 
 void RunReducerListenerServer() {

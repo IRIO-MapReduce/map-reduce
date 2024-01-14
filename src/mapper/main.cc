@@ -7,6 +7,7 @@
 
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
+#include "../common/data-structures.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -23,36 +24,39 @@ using grpc::ClientAsyncResponseReaderInterface;
 
 using namespace mapreduce;
 
-static std::string last_filepath;
-static uint32_t last_num_reducers;
-
 class MapperListenerServiceImpl final : public MapperListener::Service {
 public:
     Status ProcessMapRequest(ServerContext* context, const MapRequest* request, Response* response) override {
         std::cerr << "[MAPPER LISTENER] Received MapRequest." << std::endl;
+        std::cerr << " ---------------  id: " << request->id() << std::endl;
         std::cerr << " ---------------  filepath: " << request->filepath() << std::endl;
         std::cerr << " ---------------  execpath: " << request->execpath() << std::endl;
         std::cerr << " ---------------  num_reducers: " << request->num_reducers() << std::endl;
         
         // Save config for later.
-        last_filepath = request->filepath();
-        last_num_reducers = request->num_reducers();
+        MapConfig config;
+        config.set_id(request->id());
+        config.set_filepath(request->filepath());
+        config.set_num_reducers(request->num_reducers());
+        work_queue.add(request->execpath(), config);
 
         // Run mapper binary
-        std::system(request->execpath().c_str());
+        std::system(std::string(request->execpath() + " &").c_str());
 
         return Status::OK;
     }
 
     Status GetMapConfig(ServerContext* context, const MapConfigRequest* request, MapConfig* config) override {
-        std::cerr << "[MAPPER LISTENER] Received MapConfig request." << std::endl;
+        std::cerr << "[MAPPER LISTENER] Received MapConfig request from " << request->execpath() << std::endl;
         
         // Respond with saved config.
-        config->set_filepath(last_filepath);
-        config->set_num_reducers(last_num_reducers);
+        config->CopyFrom(work_queue.get_one(request->execpath()));
 
         return Status::OK;
     }
+
+private:
+    ListenerWorkQueue<MapConfig> work_queue;
 };
 
 void RunMapperListenerServer() {
