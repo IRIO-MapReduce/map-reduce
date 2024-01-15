@@ -29,7 +29,7 @@ docker build -t test-client:latest -f tests/Dockerfile .
 
 Run the master (currently the server of MapReduce).
 ```bash
-docker run --rm -p 50051:50051 mapreduce-master:latest
+docker run --rm -p 50051:50051 mapreduce/master:latest
 ```
 
 And then run the testing client.
