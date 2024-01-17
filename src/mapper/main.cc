@@ -60,6 +60,7 @@ private:
 };
 
 void RunMapperListenerServer() {
+    std::cout << "[MAPPER LISTENER] Started running" << std::endl;
     std::string server_address(MAPPER_LISTENER_ADDRESS);
     MapperListenerServiceImpl service;
 
@@ -69,7 +70,7 @@ void RunMapperListenerServer() {
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
 
-    std::cerr << "[MAPPER LISTENER] Server listening on " << server_address << std::endl;
+    std::cout << "[MAPPER LISTENER] Server listening on " << server_address << std::endl;
     
     server->Wait();
 }
