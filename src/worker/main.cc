@@ -1,8 +1,5 @@
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <unordered_map>
 #include <grpc++/grpc++.h>
+
 #include "mapreduce.grpc.pb.h"
 
 #include "../common/mapreduce.h"
@@ -13,14 +10,6 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using grpc::Channel;
-using grpc::ClientContext;
-using grpc::CompletionQueue;
-using grpc::ClientAsyncResponseReader;
-using grpc::ClientAsyncReader;
-using grpc::ClientAsyncReaderWriter;
-using grpc::ClientAsyncWriter;
-using grpc::ClientAsyncResponseReaderInterface;
 using grpc::ServerReader;
 using grpc::ServerWriter;
 
@@ -33,14 +22,12 @@ class WorkerListenerServiceImpl final : public WorkerListener::Service {
         std::vector<ReduceConfig> configs;
         ReduceRequest request;
 
-        int iter = 0;
         while (reader->Read(&request)) {
             ReduceConfig config;
             config.set_id(request.id());
             config.set_input_filepath(request.input_filepath());
             config.set_output_filepath(request.output_filepath());
             configs.push_back(config);
-            std::cerr << " ----------------  filepath " << iter++ << ": " << request.input_filepath() << std::endl;
         }
 
         std::cerr << " ----------------  execpath: " << request.execpath() << std::endl;
@@ -55,7 +42,7 @@ class WorkerListenerServiceImpl final : public WorkerListener::Service {
         return Status::OK;
     }
 
-    Status GetReduceConfig(ServerContext* context, const ReduceConfigRequest* request, ServerWriter<ReduceConfig>* writer) override {
+    Status GetReduceConfig(ServerContext* context, const ConfigRequest* request, ServerWriter<ReduceConfig>* writer) override {
         std::cerr << "[REDUCER LISTENER] Received ReduceConfig request." << std::endl;
         
         // Respond with saved config.
@@ -88,7 +75,7 @@ class WorkerListenerServiceImpl final : public WorkerListener::Service {
         return Status::OK;
     }
 
-    Status GetMapConfig(ServerContext* context, const MapConfigRequest* request, MapConfig* config) override {
+    Status GetMapConfig(ServerContext* context, const ConfigRequest* request, MapConfig* config) override {
         std::cerr << "[MAPPER LISTENER] Received MapConfig request from " << request->execpath() << std::endl;
         
         // Respond with saved config.
@@ -111,7 +98,7 @@ void RunWorkerListenerServer() {
     builder.RegisterService(&service);
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cerr << "[MAPPER LISTENER] Server listening on " << server_address << std::endl;
+    std::cerr << "[WORKER LISTENER] Server listening on " << server_address << std::endl;
 
     server->Wait();
 }

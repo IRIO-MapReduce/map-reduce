@@ -58,7 +58,7 @@ void Reducer::start(int argc, char** argv) {
     std::shared_ptr<Channel> channel = grpc::CreateChannel(reducer_listener_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<WorkerListener::Stub> stub = WorkerListener::NewStub(channel);
 
-    ReduceConfigRequest request;
+    ConfigRequest request;
     request.set_execpath(argv[0]);
 
     ClientContext context;

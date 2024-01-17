@@ -14,7 +14,6 @@ std::vector<std::string> get_worker_ips() try {
 
     std::vector<std::string> result;
 
-    // Loop over zones.
     for (auto zone : client.AggregatedListInstances(PROJECT_ID)) {
         if (!zone) throw std::move(zone).status();
         else {

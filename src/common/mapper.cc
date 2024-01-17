@@ -52,7 +52,7 @@ void Mapper::start(int argc, char** argv) {
     std::shared_ptr<Channel> channel = grpc::CreateChannel(mapper_listener_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<WorkerListener::Stub> stub = WorkerListener::NewStub(channel);
 
-    MapConfigRequest request;
+    ConfigRequest request;
     request.set_execpath(argv[0]);
 
     ClientContext context;

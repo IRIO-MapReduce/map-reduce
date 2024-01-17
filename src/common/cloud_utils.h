@@ -10,6 +10,9 @@ const std::string NETWORK_NAME = "nic0";
 const std::string WORKER_PREFIX = "mapper-"; // [TODO] Change to "worker-" after change on cloud
 const std::string PROJECT_ID = "pb-map-reduce";
 
+/**
+ * Returns a list of all currently available workers' IPs.
+*/
 std::vector<std::string> get_worker_ips();
 
 } // namespace

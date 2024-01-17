@@ -12,8 +12,14 @@
 
 namespace mapreduce {
 
+/**
+ * A simple class that generates unique identifiers.
+*/
 class Identifier {
 public:
+    /**
+     * Returns the next unique identifier. Thread-safe.
+    */
     inline uint32_t get_next() { return next_id++; }
 
 private:
@@ -21,13 +27,20 @@ private:
 };
 
 /**
- * A queue of work items, held by listener (mapper / reducer) to serve requests to client binaries.
+ * A queue of work items, held by a worker server to serve requests to client binaries.
 */
 template<class V>
 class ListenerWorkQueue {
 public:
+    /**
+     * Adds a new work item to the queue. Items are grouped by execpath.
+    */
     void add(std::string const& execpath, V const& item);
 
+    /**
+     * Returns any work item that can be processed by worker with a given execpath. 
+     * Assumes that there is at least one item in the queue.
+    */
     V get_one(std::string const& execpath);
 
 private:
@@ -37,6 +50,7 @@ private:
 
 /**
  * Contains all information needed by the master to keep track of a single client request.
+ * [TODO] Add proper documentation, and rewrite so that there is less code duplication.
 */
 class ClientRequestInfo {
 public:

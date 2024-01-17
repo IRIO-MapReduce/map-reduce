@@ -10,9 +10,9 @@ service Master {
 
 service WorkerListener {
     rpc ProcessMapRequest (MapRequest) returns (Response);
-    rpc GetMapConfig (MapConfigRequest) returns (MapConfig);
+    rpc GetMapConfig (ConfigRequest) returns (MapConfig);
     rpc ProcessReduceRequest (stream ReduceRequest) returns (Response);
-    rpc GetReduceConfig (ReduceConfigRequest) returns (stream ReduceConfig);
+    rpc GetReduceConfig (ConfigRequest) returns (stream ReduceConfig);
 }
 
 message ClientRequest {
@@ -24,8 +24,6 @@ message ClientRequest {
     uint32 num_reducers = 6;
 }
 
-// Should include only one execpath/output_filepath and multiple input_filepaths.
-// Stream will contain redundant information (multiple execpaths/output_filepaths).
 message ReduceRequest {
     uint64 id = 1;
     string input_filepath = 2;
@@ -40,13 +38,7 @@ message MapRequest {
     uint32 num_reducers = 4;
 }
 
-message MapConfigRequest {
-    // Later probably id of map request or sth.
-    string execpath = 1;
-}
-
-message ReduceConfigRequest {
-    // Later probably id of map request or sth.
+message ConfigRequest {
     string execpath = 1;
 }
 
@@ -56,9 +48,6 @@ message MapConfig {
     uint32 num_reducers = 3;
 }
 
-// Config should include only one output_filepath and multiple input_filepaths
-// That means, (stream ReduceConfig) will contain redundant information (multiple output_filepaths).
-// [TODO] Maybe find better solution.
 message ReduceConfig {
     uint64 id = 1;
     string input_filepath = 2;

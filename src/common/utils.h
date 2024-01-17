@@ -32,7 +32,7 @@ bool has_valid_format(std::string const& filepath);
 std::string get_intermediate_filepath(std::string const& filepath, size_t index);
 
 /**
- * Returns the filepath of the split file for a given filepath and  index.
+ * Returns the filepath of the split file for a given filepath and index.
 */
 std::string get_split_filepath(std::string const& filepath, size_t index);
 

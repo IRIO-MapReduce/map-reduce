@@ -4,15 +4,19 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <condition_variable>
+
+namespace mapreduce {
 
 /**
- * Assumes each worker can perform at most one job at a time.
+ * Simple load balancer.
+ * Takes care of assigning jobs to workers, assuming all workers can have at most one job at a time.
 */
 class LoadBalancer {
 public:
     /**
      * Returns the IP of any free worker.
-     * Potentially blocking.
+     * Potentially blocking, while waiting for a free worker.
     */
     std::string get_free_worker();
 
@@ -35,6 +39,10 @@ private:
     std::unordered_map<std::string, bool> workers;
     std::unordered_map<std::string, bool>::iterator round_robin_it;
     std::mutex mutex;
+    std::condition_variable cv;
+    size_t free_workers = 0;
 };
+
+} // mapreduce
 
 #endif // LOAD_BALANCER_H
