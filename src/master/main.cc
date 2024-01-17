@@ -4,12 +4,12 @@
 #include <unordered_map>
 #include <grpc++/grpc++.h>
 #include <latch>
-#include <google/cloud/compute/disks/v1/disks_client.h>
 #include "mapreduce.grpc.pb.h"
 
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 #include "../common/data-structures.h"
+#include "../common/cloud_utils.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -168,23 +168,7 @@ void RunMasterServer() {
     server->Wait();
 }
 
-int main(int argc, char* argv[]) try {
-    // RunMasterServer();
-    if (argc != 3) {
-    std::cerr << "Usage: " << argv[0] << " project-id zone-id\n";
-    return 1;
-  }
-
-  namespace disks = ::google::cloud::compute_disks_v1;
-  auto client = disks::DisksClient(disks::MakeDisksConnectionRest());
-
-  for (auto disk : client.ListDisks(argv[1], argv[2])) {
-    if (!disk) throw std::move(disk).status();
-    std::cout << disk->DebugString() << "\n";
-  }
-
-  return 0;
-} catch (google::cloud::Status const& status) {
-  std::cerr << "google::cloud::Status thrown: " << status << "\n";
-  return 1;
+int main() {
+    RunMasterServer();
+    return 0;
 }
