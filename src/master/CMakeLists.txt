@@ -49,3 +49,4 @@ target_link_libraries(main PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc+
 target_include_directories(main PRIVATE ${GENERATED_DIR})
 target_sources(main PRIVATE ../common/utils.cc)
 target_sources(main PRIVATE ../common/mapreduce.cc)
+target_sources(main PRIVATE ../common/cloud_utils.cc)

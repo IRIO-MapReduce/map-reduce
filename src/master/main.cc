@@ -9,6 +9,7 @@
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 #include "../common/data-structures.h"
+#include "../common/cloud_utils.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -170,6 +171,9 @@ void RunMasterServer() {
     server->Wait();
 }
 
+int main() {
+    RunMasterServer();
+    return 0;
 int main() {
     RunMasterServer();
     return 0;
