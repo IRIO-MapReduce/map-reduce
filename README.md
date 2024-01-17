@@ -82,7 +82,7 @@ git clone https://github.com/Microsoft/vcpkg.git
 
 Install desired packages (for example google_cloud_cpp_compute):
 ```bash
-./vcpkg/vcpkg install google_cloud_cpp_compute
+./vcpkg/vcpkg install google-cloud-cpp[compute]
 ```
 
 In CMakeLists.txt, include line (setting correct path to vcpkg):
