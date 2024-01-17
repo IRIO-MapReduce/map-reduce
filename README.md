@@ -1,131 +1,74 @@
 # map-reduce
 
-## Docker images
+## Gcloud deployment
 
-### Build
-
-First build the image with C++ gRPC library.
+Initialize gcloud
 ```bash
-docker build -t grpc-cpp-image:latest -f grpc-docker-image/Dockerfile .
+gcloud init
 ```
 
-Then build the project.
-
+Set the PROJECT_ID variable
 ```bash
-cd src/
+export PROJECT_ID=$(gcloud config get-value project)
 ```
 
-Build the master container.
+### Filestore
+
+Create Filestore instance
 ```bash
-docker build -t mapreduce/master:latest -f master/Dockerfile .
+gcloud filestore instances create franek \
+    --project=${PROJECT_ID} \
+    --location=us-central1-a \
+    --tier=BASIC_HDD \
+    --file-share=name=fs,capacity=1024 \
+    --network=name="default"
 ```
+
+Create an instance for uploading files
+```bash
+./fs/gcloud-create.sh
+```
+
+### Master
+
+Create master instance on gcloud
+```bash
+./master/gcloud-create.sh
+```
+
+### Mappers
+
+Create mappers MIG on gcloud
+```bash
+./mapper/gcloud-create.sh
+```
+
+### Clean up
+
+```bash
+gcloud compute instances delete master-vm
+```
+
+```bash
+gcloud compute instance-groups managed delete mapper \
+    --zone us-central1-a
+```
+
+```bash
+gcloud compute instance-templates delete mapper-template
+```
+
+## Test client
 
 Build the testing client.
 ```bash
 docker build -t test-client:latest -f tests/Dockerfile .
 ```
 
-### Run
-
-Run the master (currently the server of MapReduce).
+Forward traffic 
 ```bash
-docker run --rm -p 50051:50051 mapreduce-master:latest
-```
-
-And then run the testing client.
-```bash
-docker run --rm --network=host test-client:latest
-```
-
-After the testing is finished, stop the master container.
-```bash
-docker container ls # copy the container id of the mapreduce-master container
-docker stop [Copied container id]
-```
-
-### Push to artifact registry
-
-```
-gcloud artifacts repositories create mapreduce --repository-format=docker \
---location=us-central1
-```
-
-```
-gcloud auth configure-docker us-central1-docker.pkg.dev
-```
-
-Tag the images (run for mapper and reducer similarly)
-```
-docker tag mapreduce/master us-central1-docker.pkg.dev/${PROJECT_ID}/mapreduce/master
-```
-
-Push images to the registry (run for mapper and reducer similarly)
-```
-docker push us-central1-docker.pkg.dev/${PROJECT_ID}/mapreduce/master
-```
-
-
-## Gcloud deployment
-
-To create deployment run the following command from *src* directory
-
-```
-gcloud deployment-manager deployments create mapreduce \ 
-    --config deployment.yaml
-```
-
-To update config changes run 
-```
-gcloud deployment-manager deployments update mapreduce \
-    --config deployment.yaml
-```
-
-
-To create gcloud instance template run
-```
-gcloud compute instance-templates create-with-container mapper-vm \
-    --container-image hub.docker.com/r/pit4h/grpc-cpp-image
-```
-
-### Master
-
-```bash
-gcloud compute instances create-with-container master-vm \
+gcloud compute ssh master-vm \
+    --project ${PROJECT_ID} \
     --zone us-central1-a \
-    --container-image=us-central1-docker.pkg.dev/pb-map-reduce/mapreduce/master
-```
-
-You can update the image by using
-```
-gcloud compute instances update-container master-vm \
-    --container-image=us-central1-docker.pkg.dev/pb-map-reduce/mapreduce/master
-```
-
-### Mappers
-
-Create an instance template
-```bash
-gcloud compute instance-templates create-with-container mapper-template \
-    --machine-type=e2-standard-2 \
-    --container-image=us-central1-docker.pkg.dev/pb-map-reduce/mapreduce/mapper
-```
-
-Create Managed Instance Group
-```bash
-gcloud compute instance-groups managed create mappers \
-    --size 5 \
-    --template mapper-template \
-    --zone us-central1-a
-```
-
-
-### Clean up
-
-```
-gcloud compute instances delete master
-```
-
-```
-gcloud compute instance-groups managed delete mappers \
-    --zone us-central1-a
+    -- -NL 50051:localhost:50051
 ```

@@ -55,7 +55,9 @@ public:
             request_info.add_mapper_job(map_request);
 
             std::string mapper_listener_address(MAPPER_LISTENER_ADDRESS);
-            
+            std::cerr << " >>> " << mapper_listener_address << " <<< " << std::endl;
+
+
             std::unique_ptr<MapperListener::Stub> mapper_listener_stub(MapperListener::NewStub(
                 grpc::CreateChannel(mapper_listener_address, grpc::InsecureChannelCredentials())
             ));
@@ -155,6 +157,7 @@ private:
 };
 
 void RunMasterServer() {
+    std::cout << "[MASTER] Started running" << std::endl;
     std::string server_address(MASTER_ADDRESS);
     MasterServiceImpl service;
 
