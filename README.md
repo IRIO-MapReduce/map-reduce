@@ -72,3 +72,27 @@ gcloud compute ssh master-vm \
     --zone us-central1-a \
     -- -NL 50051:localhost:50051
 ```
+
+## Compile packages using vcpkg
+Install vcpkg in **DESIRED DIRECTORY**.
+```bash
+git clone https://github.com/Microsoft/vcpkg.git
+./vcpkg/bootstrap-vcpkg.sh
+```
+
+Install desired packages (for example google_cloud_cpp_compute):
+```bash
+./vcpkg/vcpkg install google_cloud_cpp_compute
+```
+
+In CMakeLists.txt, include line (setting correct path to vcpkg):
+```cmake
+set(PATH_TO_VCPKG /path/to/vcpkg)
+set(CMAKE_TOOLCHAIN_FILE ${PATH_TO_VCPKG}/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+```
+
+Additionally, remember to add find_package and target_link_libraries as needed, for example:
+```cmake
+find_package(google_cloud_cpp_compute REQUIRED)
+target_link_libraries(main PRIVATE ... google-cloud-cpp::compute)
+```
