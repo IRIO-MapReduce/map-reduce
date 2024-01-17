@@ -56,10 +56,8 @@ public:
             request_info.add_mapper_job(map_request);
 
             std::string mapper_listener_address(MAPPER_LISTENER_ADDRESS);
-            std::cerr << " >>> " << mapper_listener_address << " <<< " << std::endl;
 
-
-            std::unique_ptr<MapperListener::Stub> mapper_listener_stub(MapperListener::NewStub(
+            std::unique_ptr<WorkerListener::Stub> mapper_listener_stub(WorkerListener::NewStub(
                 grpc::CreateChannel(mapper_listener_address, grpc::InsecureChannelCredentials())
             ));
 
@@ -89,7 +87,7 @@ public:
 
             std::string reducer_listener_address(REDUCER_LISTENER_ADDRESS);
 
-            std::unique_ptr<ReducerListener::Stub> reducer_listener_stub(ReducerListener::NewStub(
+            std::unique_ptr<WorkerListener::Stub> reducer_listener_stub(WorkerListener::NewStub(
                 grpc::CreateChannel(reducer_listener_address, grpc::InsecureChannelCredentials())
             ));
 
@@ -171,9 +169,6 @@ void RunMasterServer() {
     server->Wait();
 }
 
-int main() {
-    RunMasterServer();
-    return 0;
 int main() {
     RunMasterServer();
     return 0;

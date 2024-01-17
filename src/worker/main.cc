@@ -26,8 +26,7 @@ using grpc::ServerWriter;
 
 using namespace mapreduce;
 
-class ReducerListenerServiceImpl final : public ReducerListener::Service {
-public:
+class WorkerListenerServiceImpl final : public WorkerListener::Service {
     Status ProcessReduceRequest(ServerContext* context, ServerReader<ReduceRequest>* reader, Response* response) override {
         std::cerr << "[REDUCER LISTENER] Received ReduceRequest." << std::endl;
         
@@ -48,7 +47,7 @@ public:
         std::cerr << " ----------------  output_filepath: " << request.output_filepath() << std::endl;
 
         // Save config for later.
-        work_queue.add(request.execpath(), configs);
+        reduce_queue.add(request.execpath(), configs);
 
         // Run reducer binary
         std::system(std::string(request.execpath() + " &").c_str());
@@ -60,7 +59,7 @@ public:
         std::cerr << "[REDUCER LISTENER] Received ReduceConfig request." << std::endl;
         
         // Respond with saved config.
-        std::vector<ReduceConfig> configs = work_queue.get_one(request->execpath());
+        std::vector<ReduceConfig> configs = reduce_queue.get_one(request->execpath());
 
         for (auto const& config : configs) {
             writer->Write(config);
@@ -69,26 +68,55 @@ public:
         return Status::OK;
     }
 
+    Status ProcessMapRequest(ServerContext* context, const MapRequest* request, Response* response) override {
+        std::cerr << "[MAPPER LISTENER] Received MapRequest." << std::endl;
+        std::cerr << " ---------------  id: " << request->id() << std::endl;
+        std::cerr << " ---------------  filepath: " << request->filepath() << std::endl;
+        std::cerr << " ---------------  execpath: " << request->execpath() << std::endl;
+        std::cerr << " ---------------  num_reducers: " << request->num_reducers() << std::endl;
+        
+        // Save config for later.
+        MapConfig config;
+        config.set_id(request->id());
+        config.set_filepath(request->filepath());
+        config.set_num_reducers(request->num_reducers());
+        map_queue.add(request->execpath(), config);
+
+        // Run mapper binary
+        std::system(std::string(request->execpath() + " &").c_str());
+
+        return Status::OK;
+    }
+
+    Status GetMapConfig(ServerContext* context, const MapConfigRequest* request, MapConfig* config) override {
+        std::cerr << "[MAPPER LISTENER] Received MapConfig request from " << request->execpath() << std::endl;
+        
+        // Respond with saved config.
+        config->CopyFrom(map_queue.get_one(request->execpath()));
+
+        return Status::OK;
+    }
+
 private:
-    ListenerWorkQueue<std::vector<ReduceConfig>> work_queue;
+    ListenerWorkQueue<std::vector<ReduceConfig>> reduce_queue;
+    ListenerWorkQueue<MapConfig> map_queue;
 };
 
-void RunReducerListenerServer() {
-    std::string server_address(REDUCER_LISTENER_ADDRESS);
-    ReducerListenerServiceImpl service;
+void RunWorkerListenerServer() {
+    std::string server_address(MAPPER_LISTENER_ADDRESS);
+    WorkerListenerServiceImpl service;
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
+    std::cerr << "[MAPPER LISTENER] Server listening on " << server_address << std::endl;
 
-    std::cerr << "[REDUCER LISTENER] Server listening on " << server_address << std::endl;
-    
     server->Wait();
 }
 
 int main() {
-    RunReducerListenerServer();
+    RunWorkerListenerServer();
     return 0;
 }

@@ -8,12 +8,9 @@ service Master {
     rpc NotifyReduceFinished (JobId) returns (Response);
 }
 
-service MapperListener {
+service WorkerListener {
     rpc ProcessMapRequest (MapRequest) returns (Response);
     rpc GetMapConfig (MapConfigRequest) returns (MapConfig);
-}
-
-service ReducerListener {
     rpc ProcessReduceRequest (stream ReduceRequest) returns (Response);
     rpc GetReduceConfig (ReduceConfigRequest) returns (stream ReduceConfig);
 }
