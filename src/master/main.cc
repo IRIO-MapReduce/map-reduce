@@ -2,14 +2,16 @@
 #include <sstream>
 #include <iostream>
 #include <unordered_map>
-#include <grpc++/grpc++.h>
 #include <latch>
+#include <thread>
+#include <grpc++/grpc++.h>
 #include "mapreduce.grpc.pb.h"
 
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 #include "../common/data-structures.h"
 #include "../common/cloud_utils.h"
+#include "../common/job-manager.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -37,8 +39,7 @@ public:
         std::cerr << " ---------------  num_mappers: " << request->num_mappers() << std::endl;
         std::cerr << " ---------------  num_reducers: " << request->num_reducers() << std::endl;
         
-        auto client_req_id = client_id.get_next();
-        auto& request_info = client_requests.add_request(client_req_id, *request);
+        auto map_group_id = job_manager.register_new_jobs_group(request->num_mappers());
 
         // Files to be sent to reducers
         std::vector<std::vector<std::string>> intermediate_files(request->num_reducers(), std::vector<std::string>(request->num_mappers()));
@@ -47,30 +48,16 @@ public:
         for (size_t i = 0; i < request->num_mappers(); i++) {
             std::string part_filepath = get_split_filepath(request->input_filepath(), i);
 
-            MapRequest map_request;
-            map_request.set_id(make_req_id(client_req_id, i));
-            map_request.set_filepath(part_filepath);
+            JobRequest map_request;
+            map_request.set_group_id(map_group_id);
+            map_request.set_job_id(i);
+            map_request.set_job_type(JobRequest::MAP);
             map_request.set_execpath(request->mapper_execpath());
-            map_request.set_num_reducers(request->num_reducers());
+            map_request.add_input_filepath(part_filepath);
+            map_request.set_num_outputs(request->num_reducers());
+
+            job_manager.add_job(map_group_id, map_request);
             
-            request_info.add_mapper_job(map_request);
-
-            std::string mapper_listener_address(MAPPER_LISTENER_ADDRESS);
-
-            std::unique_ptr<WorkerListener::Stub> mapper_listener_stub(WorkerListener::NewStub(
-                grpc::CreateChannel(mapper_listener_address, grpc::InsecureChannelCredentials())
-            ));
-
-            Response response;
-            grpc::ClientContext context;
-
-            std::cerr << "[MASTER] Sending MapRequest to MapperListener." << std::endl;
-
-            grpc::Status status = mapper_listener_stub->ProcessMapRequest(&context, map_request, &response);
-            assert(status.ok());
-
-            std::cerr << "[MASTER] Received response from MapperListener." << std::endl;
-
             for (size_t j = 0; j < request->num_reducers(); j++) {
                 intermediate_files[j][i] = get_intermediate_filepath(part_filepath, j);
             }
@@ -78,95 +65,64 @@ public:
 
         std::cerr << "[MASTER] Map phase complete, waiting for mappers to finish." << std::endl;
         
-        request_info.wait_for_map();
+        job_manager.wait_for_completion(map_group_id);
         
         std::cerr << "[MASTER] Mappers finished, starting Reduce phase" << std::endl;
+
+        auto reduce_group_id = job_manager.register_new_jobs_group(request->num_reducers());
 
         for (uint32_t i = 0; i < request->num_reducers(); i++) {
             std::cerr << "[MASTER] Sending ReduceRequest to ReducerListener." << std::endl;
 
-            std::string reducer_listener_address(REDUCER_LISTENER_ADDRESS);
-
-            std::unique_ptr<WorkerListener::Stub> reducer_listener_stub(WorkerListener::NewStub(
-                grpc::CreateChannel(reducer_listener_address, grpc::InsecureChannelCredentials())
-            ));
-
-            Response reducer_response;
-
-            grpc::ClientContext context;
-            std::shared_ptr<grpc::ClientWriter<ReduceRequest>> writer(
-                reducer_listener_stub->ProcessReduceRequest(&context, &reducer_response));
-
-            ReduceRequest reduce_request;
-            reduce_request.set_id(make_req_id(client_req_id, i));
+            JobRequest reduce_request;
+            reduce_request.set_group_id(reduce_group_id);
+            reduce_request.set_job_id(i);
+            reduce_request.set_job_type(JobRequest::REDUCE);
             reduce_request.set_execpath(request->reducer_execpath());
             reduce_request.set_output_filepath(request->output_filepath());
-
             for (auto const& filepath : intermediate_files[i]) {
-                reduce_request.set_input_filepath(filepath);
-
-                std::cerr << "[MASTER] Passing filepath: " << filepath << std::endl;
-
-                assert (writer->Write(reduce_request));
+                reduce_request.add_input_filepath(filepath);
             }
 
-            std::cerr << "[MASTER] Done sending ReduceRequests to that one listener" << std::endl;
-
-            writer->WritesDone();
-            grpc::Status status = writer->Finish();
-
-            assert(status.ok());
+            job_manager.add_job(reduce_group_id, reduce_request);
         }
 
         std::cerr << "[MASTER] Reduce phase complete, waiting for reducers to finish." << std::endl;
 
-        request_info.wait_for_reduce();
+        job_manager.wait_for_completion(reduce_group_id);
 
-        std::cerr << "[MASTER] Job done" << std::endl;
-
-        return Status::OK;
-    }
-
-    Status NotifyMapFinished(ServerContext* context, const JobId* job_id, Response* response) override {
-        std::cerr << "[MASTER] Received MapFinished Notification." << std::endl;
-        std::cerr << " ---------------  id: " << job_id->id() << std::endl;
-
-        auto [client_id, map_id] = extract_ids(job_id->id());
-        auto &request_info = client_requests.get_request_info(client_id);
-        request_info.complete_mapper_job(map_id);
+        std::cerr << "[MASTER] Finished." << std::endl;
 
         return Status::OK;
     }
 
-    Status NotifyReduceFinished(ServerContext* context, const JobId* job_id, Response* response) override {
-        std::cerr << "[MASTER] Received ReduceFinished Notification." << std::endl;
-        std::cerr << " ---------------  id: " << job_id->id() << std::endl;
-
-        auto [client_id, reduce_id] = extract_ids(job_id->id());
-        auto &request_info = client_requests.get_request_info(client_id);
-        request_info.complete_reducer_job(reduce_id);
-
-        return Status::OK;
+    void start_job_manager() {
+        job_manager.start(JOB_MANAGER_ADDRESS);
     }
 
 private:
-    Identifier client_id;
-
-    ClientRequestQueue client_requests;
+    JobManager job_manager;
+    // Identifier client_id;
+    // JobManager job_manager;
+    // ClientRequestQueue client_requests;
 };
 
 void RunMasterServer() {
-    std::cout << "[MASTER] Started running" << std::endl;
+    std::cerr << "[MASTER] Started running" << std::endl;
     std::string server_address(MASTER_ADDRESS);
     MasterServiceImpl service;
+
+    std::thread job_manager_thread([&service]() { service.start_job_manager(); });
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cout << "[MASTER] Server listening on " << server_address << std::endl;
+    std::cerr << "[MASTER] Server listening on " << server_address << std::endl;
     server->Wait();
+
+    job_manager_thread.join();
 }
 
 int main() {

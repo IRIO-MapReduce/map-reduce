@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(PATH_TO_VCPKG /home/szymon/foreign-repos/vcpkg)
+set(PATH_TO_VCPKG /home/lok10/foreign-repos/vcpkg)
 set(CMAKE_TOOLCHAIN_FILE ${PATH_TO_VCPKG}/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(test_reducer)

@@ -9,12 +9,8 @@ namespace mapreduce {
 constexpr size_t DEFAULT_SPLIT_SIZE_MB = 32;
 
 const std::string MASTER_ADDRESS = "0.0.0.0:50051";
-const std::string MAPPER_ADDRESS = "0.0.0.0:50052";
-const std::string REDUCER_ADDRESS = "0.0.0.0:50053";
-
-const std::string MAPPER_LISTENER_ADDRESS = "0.0.0.0:50054";
-// const std::string REDUCER_LISTENER_ADDRESS = "0.0.0.0:50055";
-const std::string REDUCER_LISTENER_ADDRESS = "0.0.0.0:50054";
+const std::string JOB_MANAGER_ADDRESS = "0.0.0.0:50052";
+const std::string WORKER_ADDRESS = "0.0.0.0:50053";
 
 class Config {
 public:

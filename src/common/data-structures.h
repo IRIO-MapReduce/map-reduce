@@ -8,98 +8,91 @@
 #include <atomic>
 #include <latch>
 
+#include "mapreduce.grpc.pb.h"
+
 #include "utils.h"
 
 namespace mapreduce {
 
 /**
- * A simple class that generates unique identifiers.
-*/
-class Identifier {
-public:
-    /**
-     * Returns the next unique identifier. Thread-safe.
-    */
-    inline uint32_t get_next() { return next_id++; }
-
-private:
-    std::atomic<uint32_t> next_id{0};
-};
-
-/**
  * A queue of work items, held by a worker server to serve requests to client binaries.
 */
-template<class V>
-class ListenerWorkQueue {
+class WorkQueue {
 public:
     /**
      * Adds a new work item to the queue. Items are grouped by execpath.
     */
-    void add(std::string const& execpath, V const& item);
+    void add(JobRequest const& request);
 
     /**
      * Returns any work item that can be processed by worker with a given execpath. 
      * Assumes that there is at least one item in the queue.
     */
-    V get_one(std::string const& execpath);
+    JobRequest get_one(std::string const& execpath);
 
 private:
-    std::unordered_map<std::string, std::queue<V>> work_queue;
+    std::unordered_map<std::string, std::queue<JobRequest>> work_queue;
     std::mutex mutex;
 };
 
 /**
- * Contains all information needed by the master to keep track of a single client request.
- * [TODO] Add proper documentation, and rewrite so that there is less code duplication.
+ * Contains all information about specific group of jobs.
 */
-class ClientRequestInfo {
+class JobGroup {
 public:
-    ClientRequestInfo(ClientRequest const& request_)
-        : request(request_),
-          map_latch(request.num_mappers()), reduce_latch(request.num_reducers()) {}
+    JobGroup(uint32_t num_jobs_)
+        : num_jobs(num_jobs_), latch(num_jobs), 
+          jobs(num_jobs), completed(num_jobs) 
+        {
+            for (uint32_t i = 0; i < num_jobs; ++i) {
+                completed[i] = false;
+            }
+        }
 
-    void add_mapper_job(MapRequest const& request);
+    /**
+     * Register a job request. Should be called num_jobs times, and all jobs ids should
+     * be distinct and in range [0, num_jobs).
+    */
+    void add_job(JobRequest const& request);
 
-    void add_reducer_job(ReduceRequest const& request);
+    /**
+     * Hangs the thread until all jobs are completed.
+    */
+    void wait_for_completion();
 
-    void complete_mapper_job(uint32_t id);
-
-    void complete_reducer_job(uint32_t id);
-
-    void wait_for_map();
-
-    void wait_for_reduce();
+    /**
+     * Marks a job as completed. If all jobs are completed, notifies a 
+     * thread waiting for this group (if any).
+    */
+    void mark_completed(uint32_t id);
 
 private:
-    ClientRequest request;
-    std::unordered_map<uint32_t, MapRequest> ongoing_map_requests;
-    std::unordered_map<uint32_t, ReduceRequest> ongoing_reduce_requests;
-    std::mutex mutex;
-    std::latch map_latch;
-    std::latch reduce_latch;
+    uint32_t num_jobs;
+    std::latch latch;
+    std::vector<JobRequest> jobs;
+
+    // Atomic, since data race can occur when task is repeated, and is finished by two workers
+    // at the same time.
+    std::vector<std::atomic<bool>> completed;
 };
 
 /**
  * A structure that hold all informations needed by the master to forward requests to mappers / reducers
  * and keep track of their status.
 */
-class ClientRequestQueue {
-public:
-    ClientRequestInfo& add_request(uint32_t req_id, ClientRequest const& request);
+// class ClientRequestQueue {
+// public:
+//     ClientRequestInfo& add_request(uint32_t req_id, ClientRequest const& request);
 
-    void complete_request(uint32_t req_id);
+//     void complete_request(uint32_t req_id);
 
-    ClientRequestInfo& get_request_info(uint32_t req_id);
+//     ClientRequestInfo& get_request_info(uint32_t req_id);
 
-private:
-    std::unordered_map<uint32_t, ClientRequestInfo> ongoing_requests;
-    std::mutex mutex;
-};
+// private:
+//     std::unordered_map<uint32_t, ClientRequestInfo> ongoing_requests;
+//     std::mutex mutex;
+// };
 
 } // mapreduce
-
-// https://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file
-// The more you know XD. Wygląda dziwnie ale działa.
-#include "data-structures.cc"
 
 #endif // DATA_STRUCTURES_H

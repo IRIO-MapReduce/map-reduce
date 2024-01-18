@@ -52,56 +52,52 @@ void Reducer::emit(key_t const& key, val_t const& val) {
 
 void Reducer::start(int argc, char** argv) {
     assert(argc == 1);
-    std::cerr << "[REDUCER WORKER] Starting worker..." << std::endl;
+    std::cerr << "[REDUCER] Starting worker..." << std::endl;
 
-    std::string reducer_listener_address(REDUCER_LISTENER_ADDRESS);
-    std::shared_ptr<Channel> channel = grpc::CreateChannel(reducer_listener_address, grpc::InsecureChannelCredentials());
-    std::unique_ptr<WorkerListener::Stub> stub = WorkerListener::NewStub(channel);
+    std::shared_ptr<Channel> channel = grpc::CreateChannel(WORKER_ADDRESS, grpc::InsecureChannelCredentials());
+    std::unique_ptr<Worker::Stub> stub = Worker::NewStub(channel);
 
     ConfigRequest request;
     request.set_execpath(argv[0]);
 
     ClientContext context;
-    ReduceConfig config;
+    JobRequest job;
 
-    std::cerr << "[MAPPER WORKER] Requesting MapConfig from listener" << std::endl;
+    std::cerr << "[REDUCER] Requesting job from listener" << std::endl;
 
-    std::unique_ptr<grpc::ClientReader<ReduceConfig>> reader(
-        stub->GetReduceConfig(&context, request));
-    
-    while (reader->Read(&config)) {
-        std::cerr << "[REDUCER WORKER] Received ReduceConfig from listener" << std::endl;
-        std::cerr << " ---------------  input_filepath: " << config.input_filepath() << std::endl;
-        std::cerr << " ---------------  output_filepath: " << config.output_filepath() << std::endl;
+    Status status = stub->GetFreeTask(&context, request, &job);
 
-        this->id = config.id();
-        this->input_filepaths.push_back(config.input_filepath());
-        this->output_filepath = config.output_filepath();
-    }
-
-    Status status = reader->Finish();
     assert(status.ok());
+    assert(job.job_type() == JobRequest::REDUCE);
 
-    std::cerr << "[REDUCER WORKER] Starting reduce()" << std::endl;
+    this->group_id = job.group_id();
+    this->job_id = job.job_id();
+    for (auto const& filepath : job.input_filepath()) {
+        this->input_filepaths.push_back(filepath);
+    }
+    this->output_filepath = job.output_filepath();
+    
+    std::cerr << "[REDUCER] Starting reduce()" << std::endl;
 
     reduce();
 
-    std::string master_address(MASTER_ADDRESS);
-    std::shared_ptr<Channel> master_channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
-    std::unique_ptr<Master::Stub> master_stub = Master::NewStub(master_channel);
+    std::unique_ptr<JobManagerService::Stub> manager_stub = JobManagerService::NewStub(
+        grpc::CreateChannel(JOB_MANAGER_ADDRESS, grpc::InsecureChannelCredentials())
+    );
 
-    ClientContext master_context;
-    JobId job_id;
-    job_id.set_id(this->id);
+    ClientContext manager_context;
+    JobFinishedRequest finished_request;
+    finished_request.set_group_id(this->group_id);
+    finished_request.set_job_id(this->job_id);
     Response response;
 
-    std::cerr << "[REDUCER WORKER] Sending ReduceCompleted to master" << std::endl;
+    std::cerr << "[REDUCER] Sending ReduceCompleted to master" << std::endl;
 
-    Status master_status = master_stub->NotifyReduceFinished(&master_context, job_id, &response);
+    status = manager_stub->NotifyJobFinished(&manager_context, finished_request, &response);
 
-    assert(master_status.ok());
-        
-    std::cerr << "[REDUCER WORKER] Reduce completed!" << std::endl;
+    assert(status.ok());
+    
+    std::cerr << "[REDUCER] Reduce completed!" << std::endl;
 }
     
 

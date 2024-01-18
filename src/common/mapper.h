@@ -39,7 +39,8 @@ protected:
     void emit(key_t const& key, val_t const& value);
 
 private:
-    req_id_t id;
+    uint32_t group_id;
+    uint32_t job_id;
     uint32_t num_reducers;
     std::string input_filepath;
     std::fstream input_file;

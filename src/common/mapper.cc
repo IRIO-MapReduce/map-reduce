@@ -8,10 +8,14 @@
 #include "mapper.h"
 #include "utils.h"
 #include "mapreduce.h"
+#include "job-manager.h"
 
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
+using grpc::Status;
 using grpc::Channel;
 using grpc::ClientContext;
-using grpc::Status;
 
 namespace mapreduce {
 
@@ -46,44 +50,46 @@ void Mapper::emit(key_t const& key, val_t const& val) {
 
 void Mapper::start(int argc, char** argv) {
     assert(argc == 1);
-    std::cerr << "[MAPPER WORKER] Starting worker..." << std::endl;
+    std::cerr << "[MAPPER] Starting worker..." << std::endl;
 
-    std::string mapper_listener_address(MAPPER_LISTENER_ADDRESS);
-    std::shared_ptr<Channel> channel = grpc::CreateChannel(mapper_listener_address, grpc::InsecureChannelCredentials());
-    std::unique_ptr<WorkerListener::Stub> stub = WorkerListener::NewStub(channel);
+    std::shared_ptr<Channel> channel = grpc::CreateChannel(WORKER_ADDRESS, grpc::InsecureChannelCredentials());
+    std::unique_ptr<Worker::Stub> stub = Worker::NewStub(channel);
 
     ConfigRequest request;
     request.set_execpath(argv[0]);
 
     ClientContext context;
-    MapConfig config;
+    JobRequest job;
 
-    std::cerr << "[MAPPER WORKER] Requesting MapConfig from listener" << std::endl;
+    std::cerr << "[MAPPER] Requesting job from listener" << std::endl;
     
-    Status status = stub->GetMapConfig(&context, request, &config);
+    Status status = stub->GetFreeTask(&context, request, &job);
 
     assert(status.ok());
+    assert(job.job_type() == JobRequest::MAP);
 
-    this->id = config.id();
-    this->input_filepath = config.filepath();
-    this->num_reducers = config.num_reducers();
+    this->group_id = job.group_id();
+    this->job_id = job.job_id();
+    this->input_filepath = job.input_filepath()[0];
+    this->num_reducers = job.num_outputs();
 
     std::cerr << "[MAPPER WORKER] Worker info retrieved, starting map..." << std::endl;
 
     map();
 
-    std::string master_address(MASTER_ADDRESS);
-    std::shared_ptr<Channel> master_channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
-    std::unique_ptr<Master::Stub> master_stub = Master::NewStub(master_channel);
+    std::unique_ptr<JobManagerService::Stub> manager_stub = JobManagerService::NewStub(
+        grpc::CreateChannel(JOB_MANAGER_ADDRESS, grpc::InsecureChannelCredentials())
+    );
 
-    ClientContext master_context;
-    JobId job_id;
-    job_id.set_id(this->id);
+    ClientContext manager_context;
+    JobFinishedRequest finished_request;
+    finished_request.set_group_id(this->group_id);
+    finished_request.set_job_id(this->job_id);
     Response response;
 
     std::cerr << "[MAPPER WORKER] Sending MapCompleted to master" << std::endl;
 
-    status = master_stub->NotifyMapFinished(&master_context, job_id, &response);
+    status = manager_stub->NotifyJobFinished(&manager_context, finished_request, &response);
 
     assert(status.ok());
     
