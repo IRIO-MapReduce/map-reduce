@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CMAKE_TOOLCHAIN_FILE /home/lok10/foreign-repos/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+set(PATH_TO_VCPKG /home/szymon/foreign-repos/vcpkg)
+set(CMAKE_TOOLCHAIN_FILE ${PATH_TO_VCPKG}/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(test_mapper)
 
 find_package(absl REQUIRED)
 find_package(Protobuf REQUIRED CONFIG)
 find_package(gRPC REQUIRED)
-find_package(google_cloud_cpp_common REQUIRED)
+# find_package(google_cloud_cpp_common REQUIRED)
 find_package(google_cloud_cpp_compute REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -45,11 +46,29 @@ add_library(grpc_mapreduce_proto
     ${GENERATED_DIR}/mapreduce.grpc.pb.cc
 )
 
-add_executable(test_mapper test_mapper.cc)
-target_link_libraries(test_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+add_executable(simple_mapper simple_mapper.cc)
+target_link_libraries(simple_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
 
-target_include_directories(test_mapper PRIVATE ${GENERATED_DIR})
-target_include_directories(test_mapper PRIVATE ../common)
-target_sources(test_mapper PRIVATE ../common/utils.cc)
-target_sources(test_mapper PRIVATE ../common/mapreduce.cc)
-target_sources(test_mapper PRIVATE ../common/mapper.cc)
+target_include_directories(simple_mapper PRIVATE ${GENERATED_DIR})
+target_include_directories(simple_mapper PRIVATE ../common)
+target_sources(simple_mapper PRIVATE ../common/utils.cc)
+target_sources(simple_mapper PRIVATE ../common/mapreduce.cc)
+target_sources(simple_mapper PRIVATE ../common/mapper.cc)
+
+add_executable(word_count_mapper word_count_mapper.cc)
+target_link_libraries(word_count_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+
+target_include_directories(word_count_mapper PRIVATE ${GENERATED_DIR})
+target_include_directories(word_count_mapper PRIVATE ../common)
+target_sources(word_count_mapper PRIVATE ../common/utils.cc)
+target_sources(word_count_mapper PRIVATE ../common/mapreduce.cc)
+target_sources(word_count_mapper PRIVATE ../common/mapper.cc)
+
+add_executable(long_mapper long_mapper.cc)
+target_link_libraries(long_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+
+target_include_directories(long_mapper PRIVATE ${GENERATED_DIR})
+target_include_directories(long_mapper PRIVATE ../common)
+target_sources(long_mapper PRIVATE ../common/utils.cc)
+target_sources(long_mapper PRIVATE ../common/mapreduce.cc)
+target_sources(long_mapper PRIVATE ../common/mapper.cc)

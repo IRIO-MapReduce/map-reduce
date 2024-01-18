@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CMAKE_TOOLCHAIN_FILE /home/lok10/foreign-repos/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+set(PATH_TO_VCPKG /home/szymon/foreign-repos/vcpkg)
+set(CMAKE_TOOLCHAIN_FILE ${PATH_TO_VCPKG}/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(test_reducer)
 
@@ -8,7 +9,7 @@ find_package(absl REQUIRED)
 find_package(Protobuf REQUIRED CONFIG)
 find_package(gRPC REQUIRED)
 find_package(google_cloud_cpp_common REQUIRED)
-find_package(google_cloud_cpp_compute REQUIRED)
+# find_package(google_cloud_cpp_compute REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -45,11 +46,29 @@ add_library(grpc_mapreduce_proto
     ${GENERATED_DIR}/mapreduce.grpc.pb.cc
 )
 
-add_executable(test_reducer test_reducer.cc)
-target_link_libraries(test_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+add_executable(simple_reducer simple_reducer.cc)
+target_link_libraries(simple_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
 
-target_include_directories(test_reducer PRIVATE ${GENERATED_DIR})
-target_include_directories(test_reducer PRIVATE ../common)
-target_sources(test_reducer PRIVATE ../common/utils.cc)
-target_sources(test_reducer PRIVATE ../common/mapreduce.cc)
-target_sources(test_reducer PRIVATE ../common/reducer.cc)
+target_include_directories(simple_reducer PRIVATE ${GENERATED_DIR})
+target_include_directories(simple_reducer PRIVATE ../common)
+target_sources(simple_reducer PRIVATE ../common/utils.cc)
+target_sources(simple_reducer PRIVATE ../common/mapreduce.cc)
+target_sources(simple_reducer PRIVATE ../common/reducer.cc)
+
+add_executable(word_count_reducer word_count_reducer.cc)
+target_link_libraries(word_count_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+
+target_include_directories(word_count_reducer PRIVATE ${GENERATED_DIR})
+target_include_directories(word_count_reducer PRIVATE ../common)
+target_sources(word_count_reducer PRIVATE ../common/utils.cc)
+target_sources(word_count_reducer PRIVATE ../common/mapreduce.cc)
+target_sources(word_count_reducer PRIVATE ../common/reducer.cc)
+
+add_executable(long_reducer long_reducer.cc)
+target_link_libraries(long_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+
+target_include_directories(long_reducer PRIVATE ${GENERATED_DIR})
+target_include_directories(long_reducer PRIVATE ../common)
+target_sources(long_reducer PRIVATE ../common/utils.cc)
+target_sources(long_reducer PRIVATE ../common/mapreduce.cc)
+target_sources(long_reducer PRIVATE ../common/reducer.cc)

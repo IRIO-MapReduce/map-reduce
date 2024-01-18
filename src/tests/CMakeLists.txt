@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CMAKE_TOOLCHAIN_FILE /home/lok10/foreign-repos/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+set(PATH_TO_VCPKG /home/szymon/foreign-repos/vcpkg)
+set(CMAKE_TOOLCHAIN_FILE ${PATH_TO_VCPKG}/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(mapreduce-client)
 
@@ -48,3 +49,11 @@ target_include_directories(test_client PRIVATE ${GENERATED_DIR})
 target_include_directories(test_client PRIVATE ../common)
 target_sources(test_client PRIVATE ../common/utils.cc)
 target_sources(test_client PRIVATE ../common/mapreduce.cc)
+
+add_executable(client client.cc)
+target_link_libraries(client PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+
+target_include_directories(client PRIVATE ${GENERATED_DIR})
+target_include_directories(client PRIVATE ../common)
+target_sources(client PRIVATE ../common/utils.cc)
+target_sources(client PRIVATE ../common/mapreduce.cc)
