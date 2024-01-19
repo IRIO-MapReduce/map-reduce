@@ -7,6 +7,7 @@
 #include "../common/utils.h"
 #include "../common/data-structures.h"
 #include "../common/cloud_utils.h"
+#include "health-check-service.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -81,6 +82,11 @@ void RunWorkerServer() {
 }
 
 int main() {
-    RunWorkerServer();
+    HealthCheckServiceImpl health_service("0.0.0.0:50056");
+    std::thread health_service_thread(&HealthCheckServiceImpl::start, &health_service);
+
+    RunWorkerListenerServer();
+
+    health_service_thread.join();
     return 0;
 }

@@ -12,6 +12,7 @@
 #include "../common/data-structures.h"
 #include "../common/cloud_utils.h"
 #include "../common/job-manager.h"
+#include "../common/health-checker.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -123,6 +124,11 @@ void RunMasterServer() {
 }
 
 int main() {
+    HealthChecker health_checker; 
+    std::thread hc_thread(&HealthChecker::start, &health_checker);
+
     RunMasterServer();
+
+    hc_thread.join();
     return 0;
 }
