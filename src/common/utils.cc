@@ -1,6 +1,9 @@
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <filesystem>
 
 #include "utils.h"
 
@@ -79,7 +82,25 @@ size_t split_file_bytes(std::string const& filepath, size_t part_size_bytes) {
 }
 
 bool has_valid_format(std::string const& filepath) {
-    return filepath.length() >= 4 && filepath.substr(filepath.length() - 4) == ".txt";
+    return std::filesystem::exists(filepath) && filepath.length() >= 4 && 
+           filepath.substr(filepath.length() - 4) == ".txt";
+}
+
+bool is_executable(std::string const& filepath) {
+    if (!std::filesystem::exists(filepath)) {
+        return false;
+    }
+    struct stat st;
+    if (stat(filepath.c_str(), &st) != 0) {
+        return false;
+    }
+    return (st.st_mode & S_IXUSR) != 0;
+}
+
+void validate_executable(std::string const& filepath) {
+    if (!is_executable(filepath)) {
+        throw std::invalid_argument("invalid executable filepath");
+    }
 }
 
 std::string get_intermediate_filepath(std::string const& filepath, size_t index) {

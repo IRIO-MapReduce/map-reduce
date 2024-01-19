@@ -21,6 +21,17 @@ void map_reduce(Config const& config) {
     std::shared_ptr<Channel> channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<Master::Stub> masterStub = Master::NewStub(channel);
 
+    validate_executable(config.mapper_execpath);
+    validate_executable(config.reducer_execpath);
+    
+    if (!has_valid_format(config.input_filepath)) {
+        throw std::invalid_argument("invalid input_filepath");
+    }
+
+    if (config.num_reducers == 0) {
+        throw std::invalid_argument("num_reducers must be greater than 0");
+    }
+
     size_t num_mappers = split_file_bytes(config.input_filepath, config.split_size_bytes);
 
     ClientRequest request;
