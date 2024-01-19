@@ -6,7 +6,7 @@
 #include "mapreduce.grpc.pb.h"
 #include "mapreduce.h"
 #include "utils.h"
-#include "cloud_utils.h"
+#include "cloud-utils.h"
 
 using grpc::Channel;
 using grpc::ClientContext;

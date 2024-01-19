@@ -6,7 +6,7 @@
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 #include "../common/data-structures.h"
-#include "../common/cloud_utils.h"
+#include "../common/cloud-utils.h"
 #include "health-check-service.h"
 
 using grpc::Server;
@@ -85,7 +85,7 @@ int main() {
     HealthCheckServiceImpl health_service("0.0.0.0:50056");
     std::thread health_service_thread(&HealthCheckServiceImpl::start, &health_service);
 
-    RunWorkerListenerServer();
+    RunWorkerServer();
 
     health_service_thread.join();
     return 0;

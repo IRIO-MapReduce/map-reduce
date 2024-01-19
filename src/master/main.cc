@@ -10,7 +10,7 @@
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 #include "../common/data-structures.h"
-#include "../common/cloud_utils.h"
+#include "../common/cloud-utils.h"
 #include "../common/job-manager.h"
 #include "../common/health-checker.h"
 

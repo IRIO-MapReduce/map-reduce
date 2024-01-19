@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(PATH_TO_VCPKG /home/szymon/foreign-repos/vcpkg)
 set(CMAKE_TOOLCHAIN_FILE ${PATH_TO_VCPKG}/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(mapreduce-worker)
@@ -51,7 +50,7 @@ target_include_directories(main PRIVATE ${GENERATED_DIR})
 target_sources(main PRIVATE health-check-service.cc)
 target_sources(main PRIVATE ../common/utils.cc)
 target_sources(main PRIVATE ../common/mapreduce.cc)
-target_sources(main PRIVATE ../common/cloud_utils.cc)
+target_sources(main PRIVATE ../common/cloud-utils.cc)
 target_sources(main PRIVATE ../common/job-manager.cc)
 target_sources(main PRIVATE ../common/data-structures.cc)
 target_sources(main PRIVATE ../common/load-balancer.cc)

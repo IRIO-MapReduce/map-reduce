@@ -1,5 +1,14 @@
 # map-reduce
 
+## Building locally
+
+* Set `VCPKG_DIR` environment variable to your path to the vcpkg package manager.
+* Go to the `src/master` or `src/worker` directory
+* Build the module with CMake in `build` directory:
+```bash
+cmake .. -DPATH_TO_VCPKG=${VCPKG_DIR}
+```
+
 ## Gcloud deployment
 
 Initialize gcloud

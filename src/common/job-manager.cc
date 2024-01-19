@@ -3,7 +3,7 @@
 
 #include "job-manager.h"
 #include "mapreduce.h"
-#include "cloud_utils.h"
+#include "cloud-utils.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
