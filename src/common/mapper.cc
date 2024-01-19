@@ -8,7 +8,6 @@
 #include "mapper.h"
 #include "utils.h"
 #include "mapreduce.h"
-#include "job-manager.h"
 #include "cloud-utils.h"
 
 using grpc::Server;

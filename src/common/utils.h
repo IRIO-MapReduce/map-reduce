@@ -22,6 +22,17 @@ size_t split_file_bytes(std::string const& filepath, size_t part_size_bytes);
 bool has_valid_format(std::string const& filepath);
 
 /**
+ * Checks if a filepath exists and is executable.
+*/
+bool is_executable(std::string const& filepath);
+
+/**
+ * Checks if a filepath exists and is executable.
+ * Throws an exception if the filepath is not executable.
+*/
+void validate_executable(std::string const& filepath);
+
+/**
  * Returns the filepath of the intermediate file for a given filepath and index.
 */
 std::string get_intermediate_filepath(std::string const& filepath, size_t index);
