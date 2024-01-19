@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package mapreduce;
+
+service Master {
+    rpc ProcessClientRequest (ClientRequest) returns (Response);
+}
+
+service JobManagerService {
+    rpc NotifyJobFinished (JobFinishedRequest) returns (Response);
+}
+
+service Worker {
+    rpc ProcessJobRequest (JobRequest) returns (Response);
+    rpc GetFreeTask (ConfigRequest) returns (JobRequest);
+}
+
+message ClientRequest {
+    string input_filepath = 1;
+    string output_filepath = 2;
+    string mapper_execpath = 3;
+    string reducer_execpath = 4;
+    uint32 num_mappers = 5;
+    uint32 num_reducers = 6;
+}
+
+/**
+ * This message is used by JobManager to assign job to workers.
+ * Jobs are packed in groups, like all map / reduce jobs for specified client.
+*/
+message JobRequest {
+    enum Type {
+        MAP = 0;
+        REDUCE = 1;
+    }
+
+    uint32 group_id = 1;
+    uint32 job_id = 2;
+    Type job_type = 3;
+    
+    /**
+     * Path to a binary that should be executed by the worker. 
+    */
+    string execpath = 4;
+
+    /** 
+     * Should be exactly one for map request, and can be multiple for reduce request.
+    */
+    repeated string input_filepath = 5;
+
+    /**
+     * Is used by reduce request only.
+    */
+    optional string output_filepath = 6;
+
+    /**
+     * Is used by map request only. Should be equal to desired number of reducers.
+    */
+    optional uint32 num_outputs = 7;
+
+    /**
+     * Address for which the worker should send a notification about job completion.
+    */
+    string job_manager_address = 8;
+}
+
+message JobFinishedRequest {
+    uint32 group_id = 1;
+    uint32 job_id = 2;
+}
+
+message ConfigRequest {
+    string execpath = 1;
+}
+
+message Response {
+    string result = 1;
+}
+
+message HealthCheckRequest {}
+ 
+service Health {
+    rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+enum HealthStatus {
+    UNHEALTHY = 0;
+    HEALTHY = 1;
+}
+
+message HealthCheckResponse {
+    HealthStatus status = 1;
+}
