@@ -13,6 +13,7 @@
 #include "../common/utils.h"
 #include "../common/data-structures.h"
 #include "load-balancer.h"
+#include "cloud-utils.h"
 
 
 using grpc::Status;
@@ -56,11 +57,9 @@ public:
      * Processes a request from a worker, that a job is completed.
     */
     Status NotifyJobFinished(ServerContext* context, JobFinishedRequest const* request, Response* response) override {
-        /**
-         * TODO: Don't use context->peer()
-        */
-        std::cerr << "Job finished from " << context->peer() << std::endl;
-        load_balancer.notify_worker_finished(context->peer());
+        auto address = extract_url(context->peer());
+        std::cerr << "Job finished from " << address << std::endl;
+        load_balancer.notify_worker_finished(address);
         mark_completed(request->group_id(), request->job_id());
         return Status::OK;
     }

@@ -82,7 +82,7 @@ void RunWorkerServer() {
 }
 
 int main() {
-    HealthCheckServiceImpl health_service("0.0.0.0:50056");
+    HealthCheckServiceImpl health_service(get_address(LOCALHOST, HEALTH_CHECK_PORT));
     std::thread health_service_thread(&HealthCheckServiceImpl::start, &health_service);
 
     RunWorkerServer();

@@ -37,18 +37,24 @@ static std::vector<std::string> get_list_ips(const std::string& prefix) try {
 }
 
 std::vector<std::string> get_worker_ips() {
+#ifdef LOCAL
     return {LOCALHOST};
-    // return get_list_ips(WORKER_PREFIX);
+#else
+    return get_list_ips(WORKER_PREFIX);
+#endif
 }
 
 std::optional<std::string> get_master_ip() {
+#ifdef LOCAL
     return LOCALHOST;
-    // auto ips = get_list_ips(MASTER_PREFIX);
-    // assert(ips.size() <= 1);
-    // if (ips.empty()) {
-    //     return std::nullopt;
-    // }
-    // return ips.back();
+#else
+    auto ips = get_list_ips(MASTER_PREFIX);
+    assert(ips.size() <= 1);
+    if (ips.empty()) {
+        return std::nullopt;
+    }
+    return ips.back();
+#endif
 }
 
 } // mapreduce
