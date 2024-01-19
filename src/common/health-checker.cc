@@ -9,17 +9,30 @@ using grpc::ClientContext;
 
 namespace mapreduce {
 
+void WorkerHealthStatus::report_health_check(HealthStatus reported_status) {
+    if (reported_status == UNHEALTHY) {
+        retries++;
+        if (retries >= retries_threshold) {
+            status = UNHEALTHY;
+        }
+    }
+    else {
+        status = HEALTHY;
+        retries = 0;
+    }
+}
+
 HealthStatus HealthMap::get_status(std::string ip) {
     std::lock_guard<std::mutex> lock(mutex);
     if (!worker_to_status.contains(ip)) {
-        worker_to_status[ip] = UNHEALTHY;
+        worker_to_status[ip] = WorkerHealthStatus();
     }
-    return worker_to_status[ip];
+    return worker_to_status[ip].get_status();
 }
 
 void HealthMap::set_status(std::string ip, HealthStatus status) {
     std::lock_guard<std::mutex> lock(mutex);
-    worker_to_status[ip] = status;
+    worker_to_status[ip].report_health_check(status);
 }
 
 std::vector<std::string> HealthMap::get_workers() {

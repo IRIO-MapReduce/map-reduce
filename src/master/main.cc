@@ -174,8 +174,9 @@ void RunMasterServer() {
 int main() {
     HealthChecker health_checker; 
     std::thread hc_thread(&HealthChecker::start, &health_checker);
-    health_checker.get_status("0.0.0.0:50056");
+
+    RunMasterServer();
+
     hc_thread.join();
-    // RunMasterServer();
     return 0;
 }

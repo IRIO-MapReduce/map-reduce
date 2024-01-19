@@ -20,9 +20,14 @@ namespace mapreduce {
 
 class HealthCheckServiceImpl final : public Health::Service {
 public:
+    HealthCheckServiceImpl(const std::string &service_address) : service_address(service_address) {}
+
+    void start();
+
     Status Check(ServerContext* context, const HealthCheckRequest* request, HealthCheckResponse* response) override;
 
-    HealthCheckServiceImpl(const std::string &service_address);
+private:
+    std::string service_address;
 };
 
 } // mapreduce

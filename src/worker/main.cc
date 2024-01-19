@@ -106,6 +106,10 @@ void RunWorkerListenerServer() {
 
 int main() {
     HealthCheckServiceImpl health_service("0.0.0.0:50056");
-    // RunWorkerListenerServer();
+    std::thread health_service_thread(&HealthCheckServiceImpl::start, &health_service);
+
+    RunWorkerListenerServer();
+
+    health_service_thread.join();
     return 0;
 }

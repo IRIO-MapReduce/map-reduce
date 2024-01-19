@@ -14,6 +14,18 @@
 
 namespace mapreduce {
 
+class WorkerHealthStatus {
+public:
+    WorkerHealthStatus() : status(UNHEALTHY), retries(0), retries_threshold(3) {}
+    void report_health_check(HealthStatus reported_status);
+    HealthStatus get_status() {
+        return status;
+    }
+private:
+    HealthStatus status;
+    uint16_t retries, retries_threshold;
+};
+
 class HealthMap {
 public:
     HealthStatus get_status(std::string worker);
@@ -22,12 +34,18 @@ public:
     std::vector<std::string> get_workers();
 
 private:
-    std::unordered_map<std::string, HealthStatus> worker_to_status;
+    std::unordered_map<std::string, WorkerHealthStatus> worker_to_status;
     std::mutex mutex;
 };
 
 class HealthChecker {
 public:
+    /**
+     * By default health checker sets health check timeout to 0.5s 
+     * and sleep duration between health check phases to 3s.
+    */
+    HealthChecker(int timeout_ms = 500, int sleep_duration_s = 5) : timeout_ms(timeout_ms), sleep_duration_s(sleep_duration_s) {}
+
     /**
      * Returns health status of a machine with given ip.
     */
@@ -39,8 +57,8 @@ public:
     void start();
 private:
     HealthMap monitored_workers;
-    int timeout_ms = 500; // 0.5s
-    int sleep_duration_s = 3; // 3s
+    int timeout_ms;
+    int sleep_duration_s;
 
     void update_worker_status(std::string ip, HealthStatus status);
 
