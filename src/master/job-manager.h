@@ -10,9 +10,11 @@
 
 #include "mapreduce.grpc.pb.h"
 
-#include "utils.h"
-#include "data-structures.h"
+#include "../common/utils.h"
+#include "../common/data-structures.h"
 #include "load-balancer.h"
+#include "health-checker.h"
+
 
 using grpc::Status;
 using grpc::ServerContext;

@@ -11,8 +11,8 @@
 #include "../common/utils.h"
 #include "../common/data-structures.h"
 #include "../common/cloud-utils.h"
-#include "../common/job-manager.h"
-#include "../common/health-checker.h"
+#include "job-manager.h"
+#include "health-checker.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;

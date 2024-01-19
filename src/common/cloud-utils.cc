@@ -1,6 +1,6 @@
 #include <google/cloud/compute/instances/v1/instances_client.h>
 
-#include "cloud_utils.h"
+#include "cloud-utils.h"
 
 namespace mapreduce {
 
