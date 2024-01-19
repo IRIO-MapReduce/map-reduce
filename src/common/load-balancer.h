@@ -18,7 +18,17 @@ public:
     */
     void notify_worker_finished(std::string const& worker_ip);
 
+    /**
+     * Starts the load balancer.
+     * Blocks, so should be invoked in a separate thread.
+    */
+    void start();
+
 private:
+    /**
+     * Synchronizes the state of worker machines with active VM instances on Google Cloud.
+    */
+    void refresh_workers();
     
 };
 

@@ -75,12 +75,14 @@ void JobManager::mark_completed(uint32_t group_id, uint32_t job_id) {
 }
 
 void JobManager::start(std::string const& address) {
+    std::thread load_balancer_thread([this]() { load_balancer.start(); });
     ServerBuilder builder;
     builder.AddListeningPort(address, grpc::InsecureServerCredentials());
     builder.RegisterService(this);
     std::unique_ptr<Server> server(builder.BuildAndStart());
     std::cerr << "[JOB MANAGER] Server listening on " << address << std::endl;
     server->Wait();
+    load_balancer_thread.join();
 }
 
 } // mapreduce

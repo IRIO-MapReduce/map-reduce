@@ -71,11 +71,6 @@ private:
     */
     void mark_completed(uint32_t group_id, uint32_t job_id);
 
-    /**
-     * Synchronizes the state of worker machines with active VM instances on Google Cloud.
-    */
-    void refresh_workers();
-
     uint32_t next_group_id;
     std::shared_mutex groups_lock;
     std::unordered_map<uint32_t, std::shared_ptr<JobGroup>> job_groups;
