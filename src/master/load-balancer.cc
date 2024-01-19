@@ -20,11 +20,13 @@ void LoadBalancer::notify_worker_finished(std::string const& worker_ip) {
 }
 
 void LoadBalancer::start() {
+    std::thread health_checker_thread([this]() { health_checker.start(); });
     while (true) {
         std::cerr << "[LOAD BALANCER] Refreshing workers..." << std::endl;
         refresh_workers();
         std::this_thread::sleep_for(std::chrono::seconds(5));
     }
+    health_checker_thread.join();
 }
 
 /**

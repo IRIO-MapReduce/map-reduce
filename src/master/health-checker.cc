@@ -83,6 +83,7 @@ HealthStatus HealthChecker::check(std::string ip) {
 }
 
 void HealthChecker::start() {
+    std::cerr << "[HEALTH CHECKER] Started." << std::endl;
     while (true) {
         std::vector<std::string> worker_list = monitored_workers.get_workers();
 

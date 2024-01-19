@@ -13,7 +13,6 @@
 #include "../common/utils.h"
 #include "../common/data-structures.h"
 #include "load-balancer.h"
-#include "health-checker.h"
 
 
 using grpc::Status;
@@ -77,6 +76,7 @@ private:
     std::shared_mutex groups_lock;
     std::unordered_map<uint32_t, std::shared_ptr<JobGroup>> job_groups;
     LoadBalancer load_balancer;
+    HealthChecker health_checker;
 };
 
 } // mapreduce

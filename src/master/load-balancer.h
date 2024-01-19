@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "health-checker.h"
+
 namespace mapreduce {
 
 class LoadBalancer {
@@ -29,7 +31,8 @@ private:
      * Synchronizes the state of worker machines with active VM instances on Google Cloud.
     */
     void refresh_workers();
-    
+
+    HealthChecker health_checker;    
 };
 
 } // mapreduce
