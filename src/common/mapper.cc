@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "mapreduce.h"
 #include "job-manager.h"
+#include "cloud_utils.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -52,7 +53,7 @@ void Mapper::start(int argc, char** argv) {
     assert(argc == 1);
     std::cerr << "[MAPPER] Starting worker..." << std::endl;
 
-    std::shared_ptr<Channel> channel = grpc::CreateChannel(WORKER_ADDRESS, grpc::InsecureChannelCredentials());
+    std::shared_ptr<Channel> channel = grpc::CreateChannel(get_address(LOCALHOST, WORKER_PORT), grpc::InsecureChannelCredentials());
     std::unique_ptr<Worker::Stub> stub = Worker::NewStub(channel);
 
     ConfigRequest request;
@@ -72,13 +73,14 @@ void Mapper::start(int argc, char** argv) {
     this->job_id = job.job_id();
     this->input_filepath = job.input_filepath()[0];
     this->num_reducers = job.num_outputs();
+    this->job_manager_address = job.job_manager_address();
 
     std::cerr << "[MAPPER WORKER] Worker info retrieved, starting map..." << std::endl;
 
     map();
 
     std::unique_ptr<JobManagerService::Stub> manager_stub = JobManagerService::NewStub(
-        grpc::CreateChannel(JOB_MANAGER_ADDRESS, grpc::InsecureChannelCredentials())
+        grpc::CreateChannel(this->job_manager_address, grpc::InsecureChannelCredentials())
     );
 
     ClientContext manager_context;

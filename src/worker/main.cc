@@ -1,3 +1,4 @@
+#include <thread>
 #include <grpc++/grpc++.h>
 
 #include "mapreduce.grpc.pb.h"
@@ -5,6 +6,7 @@
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 #include "../common/data-structures.h"
+#include "../common/cloud_utils.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -16,6 +18,7 @@ using grpc::ServerWriter;
 using namespace mapreduce;
 
 class WorkerServiceImpl final : public Worker::Service {
+public:
     Status ProcessJobRequest(ServerContext* context, const JobRequest* request, Response* response) override {
         std::cerr << "[WORKER LISTENER] Received JobRequest." << std::endl;
         std::cerr << " ---------------  group_id: " << request->group_id() << std::endl;
@@ -39,13 +42,33 @@ class WorkerServiceImpl final : public Worker::Service {
         return Status::OK;
     }
 
+    void get_job_manager_address() {
+        while (true) {
+            std::cerr << "[WORKER] Trying to acquire job manager address..." << std::endl;
+            auto job_manager_ip = get_master_ip();
+            
+            if (job_manager_ip.has_value()) {
+                job_manager_address = get_address(job_manager_ip.value(), JOB_MANAGER_PORT);
+                std::cerr << "[WORKER] Job manager address acquired: " << job_manager_address << std::endl;
+                return;
+            }
+
+            std::cerr << "[WORKER] Job manager not found. Retrying in 5 seconds..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+        }
+    }
+
+
 private:
     WorkQueue request_queue;
+    std::string job_manager_address;
 };
 
 void RunWorkerServer() {
-    std::string server_address(WORKER_ADDRESS);
+    std::string server_address(get_address(LOCALHOST, WORKER_PORT));
     WorkerServiceImpl service;
+
+    service.get_job_manager_address();
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

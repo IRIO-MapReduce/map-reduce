@@ -9,6 +9,7 @@
 #include "reducer.h"
 #include "utils.h"
 #include "mapreduce.h"
+#include "cloud_utils.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -54,7 +55,7 @@ void Reducer::start(int argc, char** argv) {
     assert(argc == 1);
     std::cerr << "[REDUCER] Starting worker..." << std::endl;
 
-    std::shared_ptr<Channel> channel = grpc::CreateChannel(WORKER_ADDRESS, grpc::InsecureChannelCredentials());
+    std::shared_ptr<Channel> channel = grpc::CreateChannel(get_address(LOCALHOST, WORKER_PORT), grpc::InsecureChannelCredentials());
     std::unique_ptr<Worker::Stub> stub = Worker::NewStub(channel);
 
     ConfigRequest request;
@@ -76,13 +77,14 @@ void Reducer::start(int argc, char** argv) {
         this->input_filepaths.push_back(filepath);
     }
     this->output_filepath = job.output_filepath();
+    this->job_manager_address = job.job_manager_address();
     
     std::cerr << "[REDUCER] Starting reduce()" << std::endl;
 
     reduce();
 
     std::unique_ptr<JobManagerService::Stub> manager_stub = JobManagerService::NewStub(
-        grpc::CreateChannel(JOB_MANAGER_ADDRESS, grpc::InsecureChannelCredentials())
+        grpc::CreateChannel(this->job_manager_address, grpc::InsecureChannelCredentials())
     );
 
     ClientContext manager_context;

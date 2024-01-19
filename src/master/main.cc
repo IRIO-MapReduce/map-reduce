@@ -40,12 +40,9 @@ public:
         std::cerr << " ---------------  num_reducers: " << request->num_reducers() << std::endl;
         
         auto map_group_id = job_manager.register_new_jobs_group(request->num_mappers());
-
-        // Files to be sent to reducers
         std::vector<std::vector<std::string>> intermediate_files(request->num_reducers(), std::vector<std::string>(request->num_mappers()));
 
-        // Send requests to mappers
-        for (size_t i = 0; i < request->num_mappers(); i++) {
+        for (uint32_t i = 0; i < request->num_mappers(); i++) {
             std::string part_filepath = get_split_filepath(request->input_filepath(), i);
 
             JobRequest map_request;
@@ -55,10 +52,11 @@ public:
             map_request.set_execpath(request->mapper_execpath());
             map_request.add_input_filepath(part_filepath);
             map_request.set_num_outputs(request->num_reducers());
+            map_request.set_job_manager_address(get_address(LOCALHOST, JOB_MANAGER_PORT));
 
             job_manager.add_job(map_group_id, map_request);
             
-            for (size_t j = 0; j < request->num_reducers(); j++) {
+            for (uint32_t j = 0; j < request->num_reducers(); j++) {
                 intermediate_files[j][i] = get_intermediate_filepath(part_filepath, j);
             }
         }
@@ -80,6 +78,8 @@ public:
             reduce_request.set_job_type(JobRequest::REDUCE);
             reduce_request.set_execpath(request->reducer_execpath());
             reduce_request.set_output_filepath(request->output_filepath());
+            reduce_request.set_job_manager_address(get_address(LOCALHOST, JOB_MANAGER_PORT));
+
             for (auto const& filepath : intermediate_files[i]) {
                 reduce_request.add_input_filepath(filepath);
             }
@@ -97,19 +97,16 @@ public:
     }
 
     void start_job_manager() {
-        job_manager.start(JOB_MANAGER_ADDRESS);
+        job_manager.start(get_address(LOCALHOST, JOB_MANAGER_PORT));
     }
 
 private:
     JobManager job_manager;
-    // Identifier client_id;
-    // JobManager job_manager;
-    // ClientRequestQueue client_requests;
 };
 
 void RunMasterServer() {
     std::cerr << "[MASTER] Started running" << std::endl;
-    std::string server_address(MASTER_ADDRESS);
+    std::string server_address(get_address(LOCALHOST, MASTER_PORT));
     MasterServiceImpl service;
 
     std::thread job_manager_thread([&service]() { service.start_job_manager(); });

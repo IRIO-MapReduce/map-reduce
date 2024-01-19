@@ -43,6 +43,7 @@ private:
     uint32_t job_id;
     std::string output_filepath;
     std::vector<std::string> input_filepaths;
+    std::string job_manager_address;
     std::fstream input_file;
 };
 

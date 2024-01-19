@@ -12,6 +12,7 @@
 
 #include "utils.h"
 #include "data-structures.h"
+#include "load-balancer.h"
 
 using grpc::Status;
 using grpc::ServerContext;
@@ -24,27 +25,6 @@ namespace mapreduce {
 */
 class JobManager final : public JobManagerService::Service {
 public:
-    /**
-     * Returns the IP of any free worker.
-     * Potentially blocking, while waiting for a free worker.
-    */
-    // std::string get_free_worker();
-
-    /**
-     * Mark worker as free, can be assigned to another job.
-    */
-    // void free_worker(std::string const& ip);
-
-    /**
-     * Add worker to the pool.
-    */
-    // void add_worker(std::string const& ip);
-
-    /**
-     * Remove worker from the pool.
-    */
-    // void remove_worker(std::string const& ip);
-
     /**
      * Returns a new unique request ID. Specifies the pool of jobs that will be assigned
      * as the same synchronized group.
@@ -66,35 +46,40 @@ public:
     void wait_for_completion(uint32_t group_id);
 
     /**
-     * Marks a job as completed. If all jobs from a group are completed,
-     * notifies a thread waiting for this group (if any).
-    */
-    void mark_completed(uint32_t group_id, uint32_t job_id);
-
-    /**
      * Starts the server listening on the given address.
      * Blocks, so should be invoked in a separate thread.
     */
     void start(std::string const& address);
 
     /**
-     * TODO: cannot override in .cc file, maybe some elegant solution is possible.
+     * Processes a request from a worker, that a job is completed.
     */
     Status NotifyJobFinished(ServerContext* context, JobFinishedRequest const* request, Response* response) override {
-        std::cerr << "[JOB_MANAGER] Received JobFinishedRequest from " << context->peer() << std::endl;
+        /**
+         * TODO: Don't use context->peer()
+        */
+        std::cerr << "Job finished from " << context->peer() << std::endl;
+        load_balancer.notify_worker_finished(context->peer());
         mark_completed(request->group_id(), request->job_id());
         return Status::OK;
     }
 
 private:
-//     std::unordered_map<std::string, bool> workers;
-//     std::unordered_map<std::string, bool>::iterator round_robin_it;
-//     std::mutex mutex;
-//     std::condition_variable cv;
-//     size_t free_workers = 0;
+    /**
+     * Marks a job as completed. If all jobs from a group are completed,
+     * notifies a thread waiting for this group (if any).
+    */
+    void mark_completed(uint32_t group_id, uint32_t job_id);
+
+    /**
+     * Synchronizes the state of worker machines with active VM instances on Google Cloud.
+    */
+    void refresh_workers();
+
     uint32_t next_group_id;
     std::shared_mutex groups_lock;
     std::unordered_map<uint32_t, std::shared_ptr<JobGroup>> job_groups;
+    LoadBalancer load_balancer;
 };
 
 } // mapreduce

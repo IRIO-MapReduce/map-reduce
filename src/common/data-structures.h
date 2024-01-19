@@ -44,8 +44,11 @@ public:
         : num_jobs(num_jobs_), latch(num_jobs), 
           jobs(num_jobs), completed(num_jobs) 
         {
+            /**
+             * TODO: Should definitely never happen if I underestand c++ reference correctly.
+            */
             for (uint32_t i = 0; i < num_jobs; ++i) {
-                completed[i] = false;
+                assert(completed[i] == false);
             }
         }
 
@@ -70,28 +73,8 @@ private:
     uint32_t num_jobs;
     std::latch latch;
     std::vector<JobRequest> jobs;
-
-    // Atomic, since data race can occur when task is repeated, and is finished by two workers
-    // at the same time.
     std::vector<std::atomic<bool>> completed;
 };
-
-/**
- * A structure that hold all informations needed by the master to forward requests to mappers / reducers
- * and keep track of their status.
-*/
-// class ClientRequestQueue {
-// public:
-//     ClientRequestInfo& add_request(uint32_t req_id, ClientRequest const& request);
-
-//     void complete_request(uint32_t req_id);
-
-//     ClientRequestInfo& get_request_info(uint32_t req_id);
-
-// private:
-//     std::unordered_map<uint32_t, ClientRequestInfo> ongoing_requests;
-//     std::mutex mutex;
-// };
 
 } // mapreduce
 

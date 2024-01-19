@@ -8,10 +8,6 @@ namespace mapreduce {
 
 constexpr size_t DEFAULT_SPLIT_SIZE_MB = 32;
 
-const std::string MASTER_ADDRESS = "0.0.0.0:50051";
-const std::string JOB_MANAGER_ADDRESS = "0.0.0.0:50052";
-const std::string WORKER_ADDRESS = "0.0.0.0:50053";
-
 class Config {
 public:
     inline void set_input_filepath(std::string const& filepath) noexcept {

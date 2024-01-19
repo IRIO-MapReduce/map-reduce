@@ -57,6 +57,11 @@ message JobRequest {
      * Is used by map request only. Should be equal to desired number of reducers.
     */
     optional uint32 num_outputs = 7;
+
+    /**
+     * Address for which the worker should send a notification about job completion.
+    */
+    string job_manager_address = 8;
 }
 
 message JobFinishedRequest {

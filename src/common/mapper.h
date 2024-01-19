@@ -43,6 +43,7 @@ private:
     uint32_t job_id;
     uint32_t num_reducers;
     std::string input_filepath;
+    std::string job_manager_address;
     std::fstream input_file;
 };
 

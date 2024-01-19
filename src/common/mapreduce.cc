@@ -6,6 +6,7 @@
 #include "mapreduce.grpc.pb.h"
 #include "mapreduce.h"
 #include "utils.h"
+#include "cloud_utils.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -16,7 +17,7 @@ namespace mapreduce {
 void map_reduce(Config const& config) {
     std::cerr << "[CLIENT] Starting mapreduce." << std::endl;
 
-    std::string master_address(MASTER_ADDRESS);
+    std::string master_address(get_address(get_master_ip().value(), MASTER_PORT));
     std::shared_ptr<Channel> channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<Master::Stub> masterStub = Master::NewStub(channel);
 

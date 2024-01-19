@@ -8,8 +8,8 @@ project(test_reducer)
 find_package(absl REQUIRED)
 find_package(Protobuf REQUIRED CONFIG)
 find_package(gRPC REQUIRED)
-find_package(google_cloud_cpp_common REQUIRED)
-# find_package(google_cloud_cpp_compute REQUIRED)
+# find_package(google_cloud_cpp_common REQUIRED)
+find_package(google_cloud_cpp_compute REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -47,28 +47,31 @@ add_library(grpc_mapreduce_proto
 )
 
 add_executable(simple_reducer simple_reducer.cc)
-target_link_libraries(simple_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(simple_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
 
 target_include_directories(simple_reducer PRIVATE ${GENERATED_DIR})
 target_include_directories(simple_reducer PRIVATE ../common)
 target_sources(simple_reducer PRIVATE ../common/utils.cc)
 target_sources(simple_reducer PRIVATE ../common/mapreduce.cc)
 target_sources(simple_reducer PRIVATE ../common/reducer.cc)
+target_sources(simple_reducer PRIVATE ../common/cloud_utils.cc)
 
 add_executable(word_count_reducer word_count_reducer.cc)
-target_link_libraries(word_count_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(word_count_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
 
 target_include_directories(word_count_reducer PRIVATE ${GENERATED_DIR})
 target_include_directories(word_count_reducer PRIVATE ../common)
 target_sources(word_count_reducer PRIVATE ../common/utils.cc)
 target_sources(word_count_reducer PRIVATE ../common/mapreduce.cc)
 target_sources(word_count_reducer PRIVATE ../common/reducer.cc)
+target_sources(word_count_reducer PRIVATE ../common/cloud_utils.cc)
 
 add_executable(long_reducer long_reducer.cc)
-target_link_libraries(long_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(long_reducer PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
 
 target_include_directories(long_reducer PRIVATE ${GENERATED_DIR})
 target_include_directories(long_reducer PRIVATE ../common)
 target_sources(long_reducer PRIVATE ../common/utils.cc)
 target_sources(long_reducer PRIVATE ../common/mapreduce.cc)
 target_sources(long_reducer PRIVATE ../common/reducer.cc)
+target_sources(long_reducer PRIVATE ../common/cloud_utils.cc)

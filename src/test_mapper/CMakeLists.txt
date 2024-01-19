@@ -47,28 +47,31 @@ add_library(grpc_mapreduce_proto
 )
 
 add_executable(simple_mapper simple_mapper.cc)
-target_link_libraries(simple_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(simple_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
 
 target_include_directories(simple_mapper PRIVATE ${GENERATED_DIR})
 target_include_directories(simple_mapper PRIVATE ../common)
 target_sources(simple_mapper PRIVATE ../common/utils.cc)
 target_sources(simple_mapper PRIVATE ../common/mapreduce.cc)
 target_sources(simple_mapper PRIVATE ../common/mapper.cc)
+target_sources(simple_mapper PRIVATE ../common/cloud_utils.cc)
 
 add_executable(word_count_mapper word_count_mapper.cc)
-target_link_libraries(word_count_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(word_count_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
 
 target_include_directories(word_count_mapper PRIVATE ${GENERATED_DIR})
 target_include_directories(word_count_mapper PRIVATE ../common)
 target_sources(word_count_mapper PRIVATE ../common/utils.cc)
 target_sources(word_count_mapper PRIVATE ../common/mapreduce.cc)
 target_sources(word_count_mapper PRIVATE ../common/mapper.cc)
+target_sources(word_count_mapper PRIVATE ../common/cloud_utils.cc)
 
 add_executable(long_mapper long_mapper.cc)
-target_link_libraries(long_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf)
+target_link_libraries(long_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
 
 target_include_directories(long_mapper PRIVATE ${GENERATED_DIR})
 target_include_directories(long_mapper PRIVATE ../common)
 target_sources(long_mapper PRIVATE ../common/utils.cc)
 target_sources(long_mapper PRIVATE ../common/mapreduce.cc)
 target_sources(long_mapper PRIVATE ../common/mapper.cc)
+target_sources(long_mapper PRIVATE ../common/cloud_utils.cc)

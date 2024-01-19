@@ -4,11 +4,11 @@
 
 namespace mapreduce {
 
-static inline bool is_worker_instance(const std::string& instance_name) {
-    return instance_name.substr(0, WORKER_PREFIX.size()) == WORKER_PREFIX;
+static inline bool matches_prefix(const std::string& str, const std::string& prefix) {
+    return str.substr(0, prefix.size()) == prefix;
 }
 
-std::vector<std::string> get_worker_ips() try {
+static std::vector<std::string> get_list_ips(const std::string& prefix) try {
     namespace instances = ::google::cloud::compute_instances_v1;
     auto client = instances::InstancesClient(instances::MakeInstancesConnectionRest());
 
@@ -19,7 +19,7 @@ std::vector<std::string> get_worker_ips() try {
         else {
             auto const& instance_list = zone->second.instances();
             for (auto const& instance : instance_list) {
-                if (!is_worker_instance(instance.name())) continue;
+                if (!matches_prefix(instance.name(), prefix)) continue;
                 for (auto const& network : instance.network_interfaces()) {
                     if (network.name() == NETWORK_NAME) {
                         result.push_back(network.network_ip());
@@ -34,6 +34,21 @@ std::vector<std::string> get_worker_ips() try {
 } catch (google::cloud::Status const& status) {
     assert (false);
     return {};
+}
+
+std::vector<std::string> get_worker_ips() {
+    return {LOCALHOST};
+    // return get_list_ips(WORKER_PREFIX);
+}
+
+std::optional<std::string> get_master_ip() {
+    return LOCALHOST;
+    // auto ips = get_list_ips(MASTER_PREFIX);
+    // assert(ips.size() <= 1);
+    // if (ips.empty()) {
+    //     return std::nullopt;
+    // }
+    // return ips.back();
 }
 
 } // mapreduce
