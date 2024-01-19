@@ -48,6 +48,7 @@ add_executable(main main.cc)
 target_link_libraries(main PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
 
 target_include_directories(main PRIVATE ${GENERATED_DIR})
+target_sources(main PRIVATE health-check-service.cc)
 target_sources(main PRIVATE ../common/utils.cc)
 target_sources(main PRIVATE ../common/mapreduce.cc)
 target_sources(main PRIVATE ../common/cloud_utils.cc)
