@@ -61,3 +61,18 @@ message JobId {
 message Response {
     string result = 1;
 }
+
+message HealthCheckRequest {}
+ 
+service Health {
+    rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+enum HealthStatus {
+    UNHEALTHY = 0;
+    HEALTHY = 1;
+}
+
+message HealthCheckResponse {
+    HealthStatus status = 1;
+}

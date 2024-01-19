@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CMAKE_TOOLCHAIN_FILE /home/lok10/foreign-repos/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+set(CMAKE_TOOLCHAIN_FILE /home/pit4h/mimuw/irio/map-reduce/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(mapreduce-master)
 
@@ -50,3 +50,4 @@ target_include_directories(main PRIVATE ${GENERATED_DIR})
 target_sources(main PRIVATE ../common/utils.cc)
 target_sources(main PRIVATE ../common/mapreduce.cc)
 target_sources(main PRIVATE ../common/cloud_utils.cc)
+target_sources(main PRIVATE ../common/health-checker.cc)

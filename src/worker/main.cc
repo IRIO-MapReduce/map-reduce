@@ -5,6 +5,7 @@
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 #include "../common/data-structures.h"
+#include "health-check-service.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -104,6 +105,7 @@ void RunWorkerListenerServer() {
 }
 
 int main() {
-    RunWorkerListenerServer();
+    HealthCheckServiceImpl health_service("0.0.0.0:50056");
+    // RunWorkerListenerServer();
     return 0;
 }

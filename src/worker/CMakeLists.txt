@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CMAKE_TOOLCHAIN_FILE /home/lok10/foreign-repos/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+set(CMAKE_TOOLCHAIN_FILE /home/pit4h/mimuw/irio/map-reduce/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(mapreduce-worker)
 
@@ -47,6 +47,7 @@ add_executable(main main.cc)
 target_link_libraries(main PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
 
 target_include_directories(main PRIVATE ${GENERATED_DIR})
+target_sources(main PRIVATE health-check-service.cc)
 target_sources(main PRIVATE ../common/utils.cc)
 target_sources(main PRIVATE ../common/mapreduce.cc)
 target_sources(main PRIVATE ../common/cloud_utils.cc)

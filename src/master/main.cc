@@ -10,6 +10,7 @@
 #include "../common/utils.h"
 #include "../common/data-structures.h"
 #include "../common/cloud_utils.h"
+#include "../common/health-checker.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -56,6 +57,7 @@ public:
             request_info.add_mapper_job(map_request);
 
             std::string mapper_listener_address(MAPPER_LISTENER_ADDRESS);
+            // std::string mapper_listener_address = load_balancer.get_free_worker();
 
             std::unique_ptr<WorkerListener::Stub> mapper_listener_stub(WorkerListener::NewStub(
                 grpc::CreateChannel(mapper_listener_address, grpc::InsecureChannelCredentials())
@@ -170,6 +172,10 @@ void RunMasterServer() {
 }
 
 int main() {
-    RunMasterServer();
+    HealthChecker health_checker; 
+    std::thread hc_thread(&HealthChecker::start, &health_checker);
+    health_checker.get_status("0.0.0.0:50056");
+    hc_thread.join();
+    // RunMasterServer();
     return 0;
 }
