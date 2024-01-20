@@ -53,7 +53,8 @@ size_t split_file_bytes(std::string const& filepath, size_t part_size_bytes) {
             }
         }
 
-        std::string split_filepath = get_split_filepath(filepath, num_parts);
+        std::string split_filepath = filepath;
+        split_filepath = combine_filepath(filepath, num_parts);
         std::ofstream split_file(split_filepath, std::ios::binary);
 
         if (!split_file.is_open()) {
@@ -103,18 +104,42 @@ void validate_executable(std::string const& filepath) {
     }
 }
 
-std::string get_intermediate_filepath(std::string const& filepath, size_t index) {
-    std::string intermediate_filepath = filepath;
-    intermediate_filepath.erase(intermediate_filepath.length() - 4);    
-    intermediate_filepath += "-intermediate-" + std::to_string(index) + ".txt";
-    return intermediate_filepath;
+std::string combine_filepath(std::string const& filepath, std::string str) {
+    std::string combined_filepath = filepath;
+    combined_filepath.erase(combined_filepath.length() - 4);
+    combined_filepath += "-" + str + ".txt";
+    return combined_filepath;
 }
 
-std::string get_split_filepath(std::string const& filepath, size_t index) {
-    std::string split_filepath = filepath;
-    split_filepath.erase(split_filepath.length() - 4);
-    split_filepath += "-split-" + std::to_string(index) + ".txt";
-    return split_filepath;
+std::string combine_filepath(std::string const& filepath, uint32_t idx) {
+    return combine_filepath(filepath, std::to_string(idx));
+}
+
+std::string get_random_string() {
+    static constexpr char ALPHABET[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    std::string random_string;
+    random_string.resize(FILE_HASH_LENGTH, '0');
+
+    for (size_t i = 0; i < FILE_HASH_LENGTH; i++) {
+        random_string[i] = ALPHABET[rand() % (sizeof(ALPHABET) - 1)];
+    }
+
+    return random_string;
+}
+
+std::string hash_filepath(std::string const& filepath, std::string const& hash) {
+    std::string hashed_filepath = filepath;
+    hashed_filepath.erase(hashed_filepath.length() - 4);
+    hashed_filepath += "-" + hash + ".txt";
+    return hashed_filepath;
+}
+
+std::string unhash_filepath(std::string const& filepath) {
+    std::string unhashed_filepath = filepath;
+    unhashed_filepath.erase(unhashed_filepath.length() - FILE_HASH_LENGTH - 5);
+    unhashed_filepath += ".txt";
+    return unhashed_filepath;
 }
 
 } // mapreduce
