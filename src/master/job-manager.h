@@ -30,8 +30,10 @@ public:
     /**
      * Returns a new unique request ID. Specifies the pool of jobs that will be assigned
      * as the same synchronized group.
+     * If return ID is N, then ids N, N+1 are for requestor disposal.
+     * The proposed solution is to use id N for map jobs and id N+1 for reduce jobs.
     */
-    uint32_t register_new_jobs_group(uint32_t num_jobs);
+    uint32_t register_new_jobs_group(uint32_t map_jobs, uint32_t reduce_jobs);
 
     /**
      * Adds a job to the pool. Used by master to assign jobs to workers.
@@ -71,7 +73,7 @@ private:
     */
     void mark_completed(uint32_t group_id, uint32_t job_id);
 
-    uint32_t next_group_id;
+    uint32_t next_group_id = 0;
     std::shared_mutex groups_lock;
     std::unordered_map<uint32_t, std::shared_ptr<JobGroup>> job_groups;
     LoadBalancer load_balancer;
