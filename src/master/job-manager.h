@@ -57,8 +57,8 @@ public:
      * Processes a request from a worker, that a job is completed.
     */
     Status NotifyJobFinished(ServerContext* context, JobFinishedRequest const* request, Response* response) override {
-        auto address = extract_url(context->peer());
-        std::cerr << "Job finished from " << address << std::endl;
+        auto address = uri_to_url(context->peer());
+        std::cerr << "[JOB MANAGER] Received JobFinished by: " << address << std::endl;
         load_balancer.notify_worker_finished(address);
         mark_completed(request->group_id(), request->job_id());
         return Status::OK;
