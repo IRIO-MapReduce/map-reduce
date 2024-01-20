@@ -52,7 +52,7 @@ public:
             map_request.set_execpath(request->mapper_execpath());
             map_request.add_input_filepath(part_filepath);
             map_request.set_num_outputs(request->num_reducers());
-            map_request.set_job_manager_address(get_address(LOCALHOST, JOB_MANAGER_PORT));
+            map_request.set_job_manager_address(job_manager_address);
 
             job_manager.add_job(map_group_id, map_request);
             
@@ -78,7 +78,7 @@ public:
             reduce_request.set_job_type(JobRequest::REDUCE);
             reduce_request.set_execpath(request->reducer_execpath());
             reduce_request.set_output_filepath(request->output_filepath());
-            reduce_request.set_job_manager_address(get_address(LOCALHOST, JOB_MANAGER_PORT));
+            reduce_request.set_job_manager_address(job_manager_address);
 
             for (auto const& filepath : intermediate_files[i]) {
                 reduce_request.add_input_filepath(filepath);
@@ -97,16 +97,20 @@ public:
     }
 
     void start_job_manager() {
-        job_manager.start(get_address(LOCALHOST, JOB_MANAGER_PORT));
+        auto master_ip = get_master_ip();
+        assert(master_ip.has_value());
+        job_manager_address = get_address(master_ip.value(), JOB_MANAGER_PORT);
+        job_manager.start(get_address(LISTENING_ADDRESS, JOB_MANAGER_PORT));
     }
 
 private:
     JobManager job_manager;
+    std::string job_manager_address;
 };
 
 void RunMasterServer() {
     std::cerr << "[MASTER] Started running" << std::endl;
-    std::string server_address(get_address(LOCALHOST, MASTER_PORT));
+    std::string server_address(get_address(LISTENING_ADDRESS, MASTER_PORT));
     MasterServiceImpl service;
 
     std::thread job_manager_thread([&service]() { service.start_job_manager(); });

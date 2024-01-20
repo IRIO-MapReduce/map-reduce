@@ -35,7 +35,7 @@ public:
     }
 
     Status GetFreeTask(ServerContext* context, const ConfigRequest* request, JobRequest* job_request) override {
-        std::cerr << "[REDUCER LISTENER] Received ReduceConfig request." << std::endl;
+        std::cerr << "[REDUCER LISTENER] Config request." << std::endl;
         
         // Respond with saved config.
         *job_request = request_queue.get_one(request->execpath());
@@ -66,7 +66,7 @@ private:
 };
 
 void RunWorkerServer() {
-    std::string server_address(get_address(LOCALHOST, WORKER_PORT));
+    std::string server_address(get_address(LISTENING_ADDRESS, WORKER_PORT));
     WorkerServiceImpl service;
 
     service.get_job_manager_address();
@@ -82,7 +82,7 @@ void RunWorkerServer() {
 }
 
 int main() {
-    HealthCheckServiceImpl health_service(get_address(LOCALHOST, HEALTH_CHECK_PORT));
+    HealthCheckServiceImpl health_service(get_address(LISTENING_ADDRESS, HEALTH_CHECK_PORT));
     std::thread health_service_thread(&HealthCheckServiceImpl::start, &health_service);
 
     RunWorkerServer();

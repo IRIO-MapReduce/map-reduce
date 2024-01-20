@@ -12,6 +12,7 @@ const std::string NETWORK_NAME = "nic0";
 const std::string WORKER_PREFIX = "worker-";
 const std::string MASTER_PREFIX = "master-";
 const std::string LOCALHOST = "127.0.0.1";
+const std::string LISTENING_ADDRESS = "0.0.0.0";
 const uint16_t MASTER_PORT = 50051;
 const uint16_t JOB_MANAGER_PORT = 50052;
 const uint16_t WORKER_PORT = 50053;

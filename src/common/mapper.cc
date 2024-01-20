@@ -44,6 +44,7 @@ bool Mapper::get_next_pair(key_t& key, val_t& val) {
 void Mapper::emit(key_t const& key, val_t const& val) {
     size_t h = std::hash<key_t>()(key) % num_reducers;
     std::string filepath = get_intermediate_filepath(input_filepath, h);
+    std::cerr << "[MAPPER] Emitting (" << key << ", " << val << ") to " << filepath << std::endl;
     std::ofstream output_file(filepath, std::ios::app);
     output_file << key + "," + val + "\n";
 }
@@ -73,6 +74,11 @@ void Mapper::start(int argc, char** argv) {
     this->input_filepath = job.input_filepath()[0];
     this->num_reducers = job.num_outputs();
     this->job_manager_address = job.job_manager_address();
+
+    std::cerr << "[MAPPER] Job received: (" << this->group_id << ", " << this->job_id << ")" << std::endl;
+    std::cerr << "[MAPPER] Input filepath: " << this->input_filepath << std::endl;
+    std::cerr << "[MAPPER] Num reducers: " << this->num_reducers << std::endl;
+    std::cerr << "[MAPPER] Job manager address: " << this->job_manager_address << std::endl;
 
     std::cerr << "[MAPPER WORKER] Worker info retrieved, starting map..." << std::endl;
 

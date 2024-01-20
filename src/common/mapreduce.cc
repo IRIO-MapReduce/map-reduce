@@ -18,6 +18,7 @@ void map_reduce(Config const& config) {
     std::cerr << "[CLIENT] Starting mapreduce." << std::endl;
 
     std::string master_address(get_address(get_master_ip().value(), MASTER_PORT));
+    std::cerr << "[CLIENT] Connecting to master at: " << master_address << std::endl;
     std::shared_ptr<Channel> channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<Master::Stub> masterStub = Master::NewStub(channel);
 

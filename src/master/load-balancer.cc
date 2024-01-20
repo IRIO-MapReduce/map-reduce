@@ -83,14 +83,15 @@ void LoadBalancer::check_unhealthy_workers() {
     for (auto const& worker_ip : unhealthy_workers) {
         auto health_check_address = get_address(worker_ip, HEALTH_CHECK_PORT);
         if (health_checker.get_status(health_check_address) == HealthStatus::HEALTHY) {
-            std::cerr << "[LOAD BALANCER] Found healthy worker: " << worker_ip << std::endl;
-            auto idx = idx_of_worker[health_check_address];
+            std::cerr << "[LOAD BALANCER] Marking worker as healthy: " << worker_ip << std::endl;
+            auto idx = idx_of_worker[worker_ip];
+            assert(is_busy[idx].load());
             is_busy[idx].store(false, std::memory_order_release);
             available_workers++;
             cv.notify_one();
         }
         else {
-            std::cerr << "[LOAD BALANCER] Found unhealthy worker: " << worker_ip << std::endl;
+            std::cerr << "[LOAD BALANCER] Worker still unhealthy: " << worker_ip << std::endl;
             new_unhealthy_workers.push_back(worker_ip);
         }
     }
@@ -131,6 +132,11 @@ void LoadBalancer::refresh_workers() {
 
     worker_ips = new_worker_ips;
     idx_of_worker = new_idx_of_worker;
+
+    std::cerr << "[LOAD BALANCER] Refreshed workers." << std::endl;
+    for (auto const& worker_ip : worker_ips) {
+        std::cerr << "\t[LOAD BALANCER] Worker: " << worker_ip << std::endl;
+    }
 }
 
 } // mapreduce
