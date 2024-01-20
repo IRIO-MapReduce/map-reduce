@@ -83,12 +83,14 @@ void LoadBalancer::check_unhealthy_workers() {
     for (auto const& worker_ip : unhealthy_workers) {
         auto health_check_address = get_address(worker_ip, HEALTH_CHECK_PORT);
         if (health_checker.get_status(health_check_address) == HealthStatus::HEALTHY) {
+            std::cerr << "[LOAD BALANCER] Found healthy worker: " << worker_ip << std::endl;
             auto idx = idx_of_worker[health_check_address];
             is_busy[idx].store(false, std::memory_order_release);
             available_workers++;
             cv.notify_one();
         }
         else {
+            std::cerr << "[LOAD BALANCER] Found unhealthy worker: " << worker_ip << std::endl;
             new_unhealthy_workers.push_back(worker_ip);
         }
     }
@@ -101,13 +103,14 @@ void LoadBalancer::refresh_workers() {
     std::unordered_map<std::string, uint32_t> new_idx_of_worker;
     std::vector<bool> old_is_busy(is_busy.size());
 
+    std::unique_lock lock(mutex);
+
     for (uint32_t i = 0; i < is_busy.size(); i++) {
         old_is_busy[i] = is_busy[i].load();
     }
 
     is_busy = std::vector<std::atomic<bool>>(new_worker_ips.size());
 
-    std::unique_lock lock(mutex);
     for (uint32_t i = 0; i < new_worker_ips.size(); i++) {
         auto const& worker_ip = new_worker_ips[i];
         auto it = idx_of_worker.find(worker_ip);
@@ -117,9 +120,14 @@ void LoadBalancer::refresh_workers() {
             available_workers++;
         }
         else {
-            is_busy[i].store(is_busy[it->second].load(), std::memory_order_release);
+            std::cerr << "[LOAD BALANCER] Found existing worker: " << worker_ip << std::endl;
+            is_busy[i].store(old_is_busy[it->second], std::memory_order_release);
         }
     }
+
+    /**
+     * TODO: Restart jobs of VMs that were removed,
+    */
 
     worker_ips = new_worker_ips;
     idx_of_worker = new_idx_of_worker;

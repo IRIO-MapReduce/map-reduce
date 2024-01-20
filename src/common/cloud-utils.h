@@ -31,9 +31,7 @@ inline std::string get_address(std::string const& ip, uint16_t port) {
     return ip + ":" + std::to_string(port);
 }
 
-inline std::string extract_url(std::string const& address) {
-    return address.substr(5, address.find(':'));
-}
+std::string uri_to_url(std::string const& address);
 
 } // mapreduce
 

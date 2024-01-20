@@ -57,4 +57,17 @@ std::optional<std::string> get_master_ip() {
 #endif
 }
 
+/**
+ * TODO: Verify and rewrite.
+*/
+std::string uri_to_url(std::string const& address) {
+    size_t pos = address.find(':');
+    assert (pos != std::string::npos);
+    auto result = address.substr(pos + 1);
+    pos = result.find(':');
+    assert (pos != std::string::npos);
+    result = result.substr(0, pos);
+    return result;
+}
+
 } // mapreduce

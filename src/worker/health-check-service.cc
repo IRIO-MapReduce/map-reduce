@@ -19,7 +19,6 @@ Status HealthCheckServiceImpl::Check(ServerContext* context, const HealthCheckRe
 }
 
 void HealthCheckServiceImpl::start() {
-    Health::Service();
     ServerBuilder builder;
     builder.AddListeningPort(service_address, grpc::InsecureServerCredentials());
     builder.RegisterService(this);
