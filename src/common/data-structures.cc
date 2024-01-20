@@ -21,15 +21,32 @@ void JobGroup::add_job(JobRequest const& request) {
     jobs[id] = request;
 }
 
-void JobGroup::wait_for_completion() {
-    latch.wait();
+bool JobGroup::wait_for_completion(uint32_t timeout) {
+    std::unique_lock<std::mutex> lock(mutex);
+    bool finished_successfully = cv.wait_for(lock, std::chrono::seconds(timeout), [this]() {
+        return num_jobs == 0;
+    });
+    
+    return finished_successfully;
+}
+
+std::vector<JobRequest> JobGroup::get_unfinished_jobs() {
+    std::vector<JobRequest> result;
+    for (uint32_t i = 0; i < jobs.size(); ++i) {
+        if (!completed[i]) {
+            result.push_back(jobs[i]);
+        }
+    }
+    return result;
 }
 
 void JobGroup::mark_completed(uint32_t id) {
     bool already_completed = completed[id].exchange(true);
 
     if (!already_completed) {
-        latch.count_down();
+        if (--num_jobs == 0) {
+            cv.notify_one();
+        }
     }
     else {
         /**
