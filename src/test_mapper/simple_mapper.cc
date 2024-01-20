@@ -16,7 +16,7 @@ public:
 };
 
 int main(int argc, char** argv) {
-    std::cout << "[MAPPER WORKER] Starting binary" << std::endl;
+    std::cerr << "[MAPPER WORKER] Starting binary" << std::endl;
     SimpleMapper mapper;
 
     mapper.start(argc, argv);

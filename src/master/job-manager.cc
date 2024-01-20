@@ -47,7 +47,10 @@ void JobManager::add_job(uint32_t group_id, JobRequest const& request) {
     
     grpc::Status status = stub->ProcessJobRequest(&context, request, &response);
 
-    assert(status.ok());
+    if (!status.ok()) {
+        std::cerr << status.error_code() << ": " << status.error_message() << std::endl;
+        assert(false);
+    }
 
     std::cerr << "[JOB MANAGER] Request sent successfully" << std::endl;
 }

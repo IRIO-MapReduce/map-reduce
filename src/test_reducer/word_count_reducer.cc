@@ -22,7 +22,7 @@ public:
 };
 
 int main(int argc, char** argv) {
-    std::cout << "[REDUCER WORKER] Starting binary" << std::endl;
+    std::cerr << "[REDUCER WORKER] Starting binary" << std::endl;
     AddingReducer reducer;
 
     reducer.start(argc, argv);

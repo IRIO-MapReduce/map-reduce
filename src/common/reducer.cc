@@ -48,6 +48,7 @@ bool Reducer::get_next_pair(key_t& key, val_t& val) {
 
 void Reducer::emit(key_t const& key, val_t const& val) {
     std::ofstream output_file(output_filepath, std::ios::app);
+    std::cerr << "[REDUCER] Emitting (" << key << ", " << val << ") to " << output_filepath << std::endl;
     output_file << key + "," + val + "\n";  
 }
 
@@ -78,6 +79,16 @@ void Reducer::start(int argc, char** argv) {
     }
     this->output_filepath = job.output_filepath();
     this->job_manager_address = job.job_manager_address();
+
+    std::cerr << "[REDUCER] Received job from listener" << std::endl;
+    std::cerr << "[REDUCER] Group ID: " << this->group_id << std::endl;
+    std::cerr << "[REDUCER] Job ID: " << this->job_id << std::endl;
+    std::cerr << "[REDUCER] Input filepaths: " << std::endl;
+    for (auto const& filepath : this->input_filepaths) {
+        std::cerr << "\t" << filepath << std::endl;
+    }
+    std::cerr << "[REDUCER] Output filepath: " << this->output_filepath << std::endl;
+    std::cerr << "[REDUCER] Job manager address: " << this->job_manager_address << std::endl;
     
     std::cerr << "[REDUCER] Starting reduce()" << std::endl;
 
