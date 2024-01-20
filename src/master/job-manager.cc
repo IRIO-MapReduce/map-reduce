@@ -27,6 +27,7 @@ uint32_t JobManager::register_new_jobs_group(uint32_t num_jobs) {
 }
 
 void JobManager::add_job(uint32_t group_id, JobRequest const& request) {
+    std::cerr << "[JOB MANAGER] Adding job (" << group_id << ", " << request.job_id() << ")" << std::endl;
     {
         std::shared_lock<std::shared_mutex> lock(groups_lock);
         assert(job_groups.contains(group_id));
@@ -47,15 +48,17 @@ void JobManager::add_job(uint32_t group_id, JobRequest const& request) {
     
     grpc::Status status = stub->ProcessJobRequest(&context, request, &response);
 
-    if (!status.ok()) {
-        std::cerr << status.error_code() << ": " << status.error_message() << std::endl;
-        assert(false);
-    }
+    assert(status.ok());
 
     std::cerr << "[JOB MANAGER] Request sent successfully" << std::endl;
 }
 
 void JobManager::wait_for_completion(uint32_t group_id) {
+    /**
+     * TODO: Discuss timeout and include it somewhere else in the config.
+    */
+    static constexpr uint32_t TIMEOUT = 5;
+
     std::shared_ptr<JobGroup> group;
     
     {
@@ -64,7 +67,16 @@ void JobManager::wait_for_completion(uint32_t group_id) {
         group = job_groups[group_id];
     }
 
-    group->wait_for_completion();
+    std::cerr << "[JOB MANAGER] Waiting for group (" << group_id << ") to complete" << std::endl;
+    while (!group->wait_for_completion(TIMEOUT)) {
+        auto unfinished_jobs = group->get_unfinished_jobs();
+        std::cerr << "[JOB MANAGER] Group (" << group_id << ") timed out. Unfinished jobs: " << std::endl;
+        for (const auto& job : unfinished_jobs) {
+            std::cerr << "\tJob (" << job.group_id() << ", " << job.job_id() << ")" << std::endl;
+            add_job(group_id, job);
+        }
+    }
+    std::cerr << "[JOB MANAGER] Group (" << group_id << ") completed successfully" << std::endl;
 
     std::unique_lock<std::shared_mutex> lock(groups_lock);
     job_groups.erase(group_id);

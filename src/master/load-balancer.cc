@@ -18,11 +18,27 @@ static uint32_t thread_safe_rand() {
     return val;
 }
 
+void LoadBalancer::release_worker(uint32_t idx) {
+    if (is_busy[idx].exchange(false, std::memory_order_release)) {
+        available_workers++;
+        cv.notify_one();
+    }
+}
+
+bool LoadBalancer::try_acquire_worker() {
+    uint32_t val;
+    while ((val = available_workers) > 0) {
+        if (available_workers.compare_exchange_weak(val, val - 1))
+            return true;
+    }
+    return false;
+}
+
 std::string LoadBalancer::get_worker_ip_unchecked() {
     std::shared_lock lock(mutex);
+
     cv.wait(lock, [this]() {
-        uint32_t val = available_workers.load();
-        return val > 0 && available_workers.compare_exchange_strong(val, val - 1);
+        return try_acquire_worker();
     });
 
     auto idx = thread_safe_rand() % is_busy.size();
@@ -50,16 +66,14 @@ std::string LoadBalancer::get_worker_ip() {
 
         std::unique_lock lock(mutex);
         unhealthy_workers.push_back(worker_ip);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
 void LoadBalancer::notify_worker_finished(std::string const& worker_ip) {
     std::shared_lock lock(mutex);
     auto idx = idx_of_worker[worker_ip];
-    assert(is_busy[idx].load());
-    is_busy[idx].store(false, std::memory_order_release);
-    available_workers++;
-    cv.notify_one();
+    release_worker(idx);
 }
 
 void LoadBalancer::start() {
@@ -67,11 +81,11 @@ void LoadBalancer::start() {
     while (true) {
         std::cerr << "[LOAD BALANCER] Refreshing workers..." << std::endl;
         refresh_workers();
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
         std::cerr << "[LOAD BALANCER] Checking unhealthy workers..." << std::endl;
         check_unhealthy_workers();
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
     }
     health_checker_thread.join();
 }
@@ -85,10 +99,7 @@ void LoadBalancer::check_unhealthy_workers() {
         if (health_checker.get_status(health_check_address) == HealthStatus::HEALTHY) {
             std::cerr << "[LOAD BALANCER] Marking worker as healthy: " << worker_ip << std::endl;
             auto idx = idx_of_worker[worker_ip];
-            assert(is_busy[idx].load());
-            is_busy[idx].store(false, std::memory_order_release);
-            available_workers++;
-            cv.notify_one();
+            release_worker(idx);
         }
         else {
             std::cerr << "[LOAD BALANCER] Worker still unhealthy: " << worker_ip << std::endl;
@@ -119,16 +130,17 @@ void LoadBalancer::refresh_workers() {
         if (it == idx_of_worker.end()) {
             std::cerr << "[LOAD BALANCER] Found new worker: " << worker_ip << std::endl;
             available_workers++;
+            cv.notify_one();
         }
         else {
             std::cerr << "[LOAD BALANCER] Found existing worker: " << worker_ip << std::endl;
-            is_busy[i].store(old_is_busy[it->second], std::memory_order_release);
+            is_busy[i].store(false, std::memory_order_release);
+            if (old_is_busy[it->second]) {
+                available_workers++;
+                cv.notify_one();
+            }
         }
     }
-
-    /**
-     * TODO: Restart jobs of VMs that were removed,
-    */
 
     worker_ips = new_worker_ips;
     idx_of_worker = new_idx_of_worker;

@@ -45,6 +45,19 @@ private:
     */
     void check_unhealthy_workers();
 
+    /**
+     * Marks worker with a given index as free.
+    */
+    void release_worker(uint32_t idx);
+
+    /**
+     * Tries to acquire a token for a worker.
+     * Returns true if successful, false otherwise.
+     * If successful, reduces the number of available workers by one and guarantees,
+     * that there will be at least one worker available to take a job.
+    */
+    bool try_acquire_worker();
+
     HealthChecker health_checker;
 
     std::shared_mutex mutex;
