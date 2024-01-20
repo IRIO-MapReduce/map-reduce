@@ -19,15 +19,22 @@ namespace mapreduce {
 
 bool Reducer::get_next_pair(key_t& key, val_t& val) {
     if (!input_file.is_open()) {
-        if (input_filepaths.empty()) {
+        if (current_mapper == num_mappers) {
             return false;
         }
 
+        std::string filepath = input_filepath;
+        filepath = combine_filepath(filepath, current_mapper);
+        filepath = combine_filepath(filepath, group_id - 1);
+        filepath = combine_filepath(filepath, job_id);
+
+        std::cerr << "[REDUCER] Opening file " << filepath << std::endl;
+
         try {
-            input_file.open(input_filepaths.back());
+            input_file.open(filepath);
         }
         catch (...) {
-            std::cerr << "[ERROR] Error opening file" << std::endl;
+            std::cerr << "[ERROR] Error opening file " << filepath << std::endl;
             return false;
         }
     }
@@ -41,20 +48,28 @@ bool Reducer::get_next_pair(key_t& key, val_t& val) {
     }
 
     input_file.close();
-    input_filepaths.pop_back();
+    current_mapper++;
 
     return get_next_pair(key, val);
 }
 
 void Reducer::emit(key_t const& key, val_t const& val) {
-    std::ofstream output_file(output_filepath, std::ios::app);
-    std::cerr << "[REDUCER] Emitting (" << key << ", " << val << ") to " << output_filepath << std::endl;
+    std::string filepath = output_filepath;
+    filepath = combine_filepath(filepath, job_id);
+    filepath = combine_filepath(filepath, group_id);
+    filepath = combine_filepath(filepath, hash);
+
+    std::ofstream output_file(filepath, std::ios::app);
+    std::cerr << "[REDUCER] Emitting (" << key << ", " << val << ") to " << filepath << std::endl;
     output_file << key + "," + val + "\n";  
 }
 
 void Reducer::start(int argc, char** argv) {
     assert(argc == 1);
     std::cerr << "[REDUCER] Starting worker..." << std::endl;
+
+    srand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    hash = get_random_string();
 
     std::shared_ptr<Channel> channel = grpc::CreateChannel(get_address(LOCALHOST, WORKER_PORT), grpc::InsecureChannelCredentials());
     std::unique_ptr<Worker::Stub> stub = Worker::NewStub(channel);
@@ -74,25 +89,35 @@ void Reducer::start(int argc, char** argv) {
 
     this->group_id = job.group_id();
     this->job_id = job.job_id();
-    for (auto const& filepath : job.input_filepath()) {
-        this->input_filepaths.push_back(filepath);
-    }
+    this->input_filepath = job.input_filepath();
     this->output_filepath = job.output_filepath();
     this->job_manager_address = job.job_manager_address();
+    this->num_mappers = job.num_inputs();
 
-    std::cerr << "[REDUCER] Received job from listener" << std::endl;
-    std::cerr << "[REDUCER] Group ID: " << this->group_id << std::endl;
-    std::cerr << "[REDUCER] Job ID: " << this->job_id << std::endl;
-    std::cerr << "[REDUCER] Input filepaths: " << std::endl;
-    for (auto const& filepath : this->input_filepaths) {
-        std::cerr << "\t" << filepath << std::endl;
-    }
-    std::cerr << "[REDUCER] Output filepath: " << this->output_filepath << std::endl;
-    std::cerr << "[REDUCER] Job manager address: " << this->job_manager_address << std::endl;
-    
     std::cerr << "[REDUCER] Starting reduce()" << std::endl;
-
     reduce();
+
+    std::string hashed_output_filepath = output_filepath;
+    hashed_output_filepath = combine_filepath(hashed_output_filepath, job_id);
+    hashed_output_filepath = combine_filepath(hashed_output_filepath, group_id);
+    hashed_output_filepath = combine_filepath(hashed_output_filepath, hash);
+
+    std::string final_output_filepath = unhash_filepath(hashed_output_filepath);
+
+    try {
+        /**
+         * TODO: verify rename, maybe try use std::filesystem::rename or C-style rename.
+        */
+        std::cerr << "[REDUCER] Renaming " << hashed_output_filepath << " to " << final_output_filepath << std::endl;
+        if (std::rename(hashed_output_filepath.c_str(), final_output_filepath.c_str())) 
+            throw std::runtime_error("Error renaming file");
+    }
+    catch (...) {
+        /**
+         * TODO: handle error (should exit or pass the request?)
+        */
+        std::cerr << "[ERROR] Error renaming file " << hashed_output_filepath << " to " << final_output_filepath << std::endl;
+    }
 
     std::unique_ptr<JobManagerService::Stub> manager_stub = JobManagerService::NewStub(
         grpc::CreateChannel(this->job_manager_address, grpc::InsecureChannelCredentials())

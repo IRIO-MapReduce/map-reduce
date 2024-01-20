@@ -30,7 +30,7 @@ using namespace mapreduce;
 
 class MasterServiceImpl final : public Master::Service {
 public:
-    Status ProcessClientRequest(ServerContext* context, const ClientRequest* request, Response* response) override {
+    Status ProcessClientRequest(ServerContext* context, const ClientRequest* request, ClientResponse* response) override {
         std::cerr << "[MASTER] Received ClientRequest." << std::endl;
         std::cerr << " ---------------  input_filepath: " << request->input_filepath() << std::endl;
         std::cerr << " ---------------  output_filepath: " << request->output_filepath() << std::endl;
@@ -39,60 +39,45 @@ public:
         std::cerr << " ---------------  num_mappers: " << request->num_mappers() << std::endl;
         std::cerr << " ---------------  num_reducers: " << request->num_reducers() << std::endl;
         
-        auto map_group_id = job_manager.register_new_jobs_group(request->num_mappers());
-        std::vector<std::vector<std::string>> intermediate_files(request->num_reducers(), std::vector<std::string>(request->num_mappers()));
+        auto map_group_id = job_manager.register_new_jobs_group(request->num_mappers(), request->num_reducers());
+        auto reduce_group_id = map_group_id + 1;
 
         for (uint32_t i = 0; i < request->num_mappers(); i++) {
-            std::string part_filepath = get_split_filepath(request->input_filepath(), i);
-
             JobRequest map_request;
             map_request.set_group_id(map_group_id);
             map_request.set_job_id(i);
             map_request.set_job_type(JobRequest::MAP);
             map_request.set_execpath(request->mapper_execpath());
-            map_request.add_input_filepath(part_filepath);
+            map_request.set_input_filepath(request->input_filepath());
             map_request.set_num_outputs(request->num_reducers());
             map_request.set_job_manager_address(job_manager_address);
 
             job_manager.add_job(map_group_id, map_request);
-            
-            for (uint32_t j = 0; j < request->num_reducers(); j++) {
-                intermediate_files[j][i] = get_intermediate_filepath(part_filepath, j);
-            }
         }
 
         std::cerr << "[MASTER] Map phase complete, waiting for mappers to finish." << std::endl;
-        
         job_manager.wait_for_completion(map_group_id);
-        
         std::cerr << "[MASTER] Mappers finished, starting Reduce phase" << std::endl;
 
-        auto reduce_group_id = job_manager.register_new_jobs_group(request->num_reducers());
-
         for (uint32_t i = 0; i < request->num_reducers(); i++) {
-            std::cerr << "[MASTER] Sending ReduceRequest to ReducerListener." << std::endl;
-
             JobRequest reduce_request;
             reduce_request.set_group_id(reduce_group_id);
             reduce_request.set_job_id(i);
             reduce_request.set_job_type(JobRequest::REDUCE);
             reduce_request.set_execpath(request->reducer_execpath());
+            reduce_request.set_input_filepath(request->input_filepath());
+            reduce_request.set_num_inputs(request->num_mappers());
             reduce_request.set_output_filepath(request->output_filepath());
             reduce_request.set_job_manager_address(job_manager_address);
-
-            for (auto const& filepath : intermediate_files[i]) {
-                reduce_request.add_input_filepath(filepath);
-            }
 
             job_manager.add_job(reduce_group_id, reduce_request);
         }
 
         std::cerr << "[MASTER] Reduce phase complete, waiting for reducers to finish." << std::endl;
-
         job_manager.wait_for_completion(reduce_group_id);
-
         std::cerr << "[MASTER] Finished." << std::endl;
 
+        response->set_group_id(reduce_group_id);
         return Status::OK;
     }
 

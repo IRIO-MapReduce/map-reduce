@@ -44,10 +44,11 @@ void map_reduce(Config const& config) {
     request.set_num_reducers(config.num_reducers);
 
     ClientContext context;
-    Response response;
+    ClientResponse response;
     Status status = masterStub->ProcessClientRequest(&context, request, &response);
-
     assert(status.ok());
+
+    std::cerr << "[CLIENT] MapReduce finished. Output files group id is " << response.group_id() << std::endl;
 }
 
 } // mapreduce

@@ -41,10 +41,13 @@ protected:
 private:
     uint32_t group_id;
     uint32_t job_id;
+    uint32_t num_mappers;
     std::string output_filepath;
-    std::vector<std::string> input_filepaths;
+    std::string input_filepath;
     std::string job_manager_address;
+    std::string hash;
     std::fstream input_file;
+    uint32_t current_mapper = 0;
 };
 
 } // mapreduce

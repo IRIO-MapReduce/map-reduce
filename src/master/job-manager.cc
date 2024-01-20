@@ -20,10 +20,13 @@ using grpc::ClientAsyncResponseReaderInterface;
 
 namespace mapreduce {
 
-uint32_t JobManager::register_new_jobs_group(uint32_t num_jobs) {
+uint32_t JobManager::register_new_jobs_group(uint32_t map_jobs, uint32_t reduce_jobs) {
     std::unique_lock<std::shared_mutex> lock(groups_lock);
-    job_groups.emplace(next_group_id, std::make_shared<JobGroup>(num_jobs));
-    return next_group_id++;
+    job_groups.emplace(next_group_id, std::make_shared<JobGroup>(map_jobs));
+    job_groups.emplace(next_group_id + 1, std::make_shared<JobGroup>(reduce_jobs));
+    uint32_t ret = next_group_id;
+    next_group_id += 2;
+    return ret;
 }
 
 void JobManager::add_job(uint32_t group_id, JobRequest const& request) {

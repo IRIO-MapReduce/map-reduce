@@ -3,7 +3,7 @@ syntax = "proto3";
 package mapreduce;
 
 service Master {
-    rpc ProcessClientRequest (ClientRequest) returns (Response);
+    rpc ProcessClientRequest (ClientRequest) returns (ClientResponse);
 }
 
 service JobManagerService {
@@ -44,12 +44,12 @@ message JobRequest {
     string execpath = 4;
 
     /** 
-     * Should be exactly one for map request, and can be multiple for reduce request.
+     * 'Base' input filepath for a client request.
     */
-    repeated string input_filepath = 5;
+    string input_filepath = 5;
 
     /**
-     * Is used by reduce request only.
+     * Is used by reduce request only to generate final filepaths with outputs.
     */
     optional string output_filepath = 6;
 
@@ -59,9 +59,14 @@ message JobRequest {
     optional uint32 num_outputs = 7;
 
     /**
+     * Is used by map request only. Should be equal to number of mappers.
+    */
+    optional uint32 num_inputs = 8;
+
+    /**
      * Address for which the worker should send a notification about job completion.
     */
-    string job_manager_address = 8;
+    string job_manager_address = 9;
 }
 
 message JobFinishedRequest {
@@ -71,6 +76,10 @@ message JobFinishedRequest {
 
 message ConfigRequest {
     string execpath = 1;
+}
+
+message ClientResponse {
+    uint32 group_id = 1;
 }
 
 message Response {
