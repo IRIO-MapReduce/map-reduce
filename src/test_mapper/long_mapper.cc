@@ -8,9 +8,9 @@ public:
         mapreduce::key_t key;
         mapreduce::val_t val;
 
+        sleep(2);
         while (get_next_pair(key, val)) {
             std::cerr << "[LONG MAPPER] key: " << key << ", val: " << val << std::endl;
-            sleep(2);
             emit(key, val);
         }
     }
