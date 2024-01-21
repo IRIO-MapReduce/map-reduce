@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <grpc++/grpc++.h>
 #include <iostream>
@@ -64,8 +65,8 @@ void Mapper::emit(key_t const& key, val_t const& val)
 void Mapper::start(int argc, char** argv)
 {
     assert(argc == 1);
-    log_message("[MAPPER] Starting worker...",
-        google::logging::type::LogSeverity::INFO);
+    // log_message("[MAPPER] Starting worker...",
+    // google::logging::type::LogSeverity::INFO);
 
     srand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     hash = get_random_string();
@@ -81,7 +82,7 @@ void Mapper::start(int argc, char** argv)
     ClientContext context;
     JobRequest job;
 
-    log_message("[MAPPER] Requesting job from listener");
+    // log_message("[MAPPER] Requesting job from listener");
 
     Status status = stub->GetFreeTask(&context, request, &job);
 
@@ -94,13 +95,13 @@ void Mapper::start(int argc, char** argv)
     this->num_reducers = job.num_outputs();
     this->job_manager_address = job.job_manager_address();
 
-    log_message("[MAPPER] Worker info retrieved, starting map...",
-        google::logging::type::LogSeverity::INFO,
-        {{"group_id", std::to_string(this->group_id)},
-            {"job_id", std::to_string(this->job_id)},
-            {"input_filepath", this->input_filepath},
-            {"num_reducers", std::to_string(this->num_reducers)},
-            {"job_manager_address", this->job_manager_address}});
+    // log_message("[MAPPER] Worker info retrieved, starting map...",
+    //     google::logging::type::LogSeverity::INFO,
+    //     {{"group_id", std::to_string(this->group_id)},
+    //         {"job_id", std::to_string(this->job_id)},
+    //         {"input_filepath", this->input_filepath},
+    //         {"num_reducers", std::to_string(this->num_reducers)},
+    //         {"job_manager_address", this->job_manager_address}});
 
     map();
 
@@ -113,21 +114,22 @@ void Mapper::start(int argc, char** argv)
 
         std::string final_filepath = unhash_filepath(hashed_filepath);
 
-        try {
-            /**
-             * TODO: verify rename, maybe try use std::filesystem::rename or
-             * C-style rename.
-             */
-            log_message("[MAPPER] Renaming " + hashed_filepath + " to "
-                + final_filepath);
-            std::rename(hashed_filepath.c_str(), final_filepath.c_str());
-        } catch (...) {
-            /**
-             * TODO: handle error (should exit or pass the request?)
-             */
-            log_message("[MAPPER] Error renaming file " + hashed_filepath
-                    + " to " + final_filepath,
-                google::logging::type::LogSeverity::ERROR);
+        /**
+         * TODO: verify rename, maybe try use std::filesystem::rename or
+         * C-style rename.
+         */
+        if (std::filesystem::exists(hashed_filepath)) {
+            // log_message("[MAPPER] Renaming " + hashed_filepath + " to "
+            //     + final_filepath);
+
+            try {
+                std::filesystem::rename(
+                    hashed_filepath.c_str(), final_filepath.c_str());
+            } catch (std::exception& e) {
+                log_message("[REDUCER] Error renaming file " + hashed_filepath
+                        + " to " + final_filepath + ", error code: " + e.what(),
+                    google::logging::type::LogSeverity::ERROR);
+            }
         }
     }
 
@@ -141,15 +143,15 @@ void Mapper::start(int argc, char** argv)
     finished_request.set_job_id(this->job_id);
     Response response;
 
-    log_message("[MAPPER] Sending MapCompleted to master");
+    // log_message("[MAPPER] Sending MapCompleted to master");
 
     status = manager_stub->NotifyJobFinished(
         &manager_context, finished_request, &response);
 
     assert(status.ok());
 
-    log_message(
-        "[MAPPER] Map completed!", google::logging::type::LogSeverity::INFO);
+    // log_message(
+    //     "[MAPPER] Map completed!", google::logging::type::LogSeverity::INFO);
 }
 
 } // mapreduce

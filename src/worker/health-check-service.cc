@@ -14,7 +14,7 @@ namespace mapreduce {
 Status HealthCheckServiceImpl::Check(ServerContext* context,
     const HealthCheckRequest* request, HealthCheckResponse* response)
 {
-    log_message("[HEALTH CHECK SERVICE] Received Health Check.");
+    // log_message("[HEALTH CHECK SERVICE] Received Health Check.");
 
     response->set_status(HEALTHY);
 
