@@ -9,7 +9,7 @@ gcloud compute instance-templates create worker-template \
     --metadata-from-file=startup-script=worker/startup-script.sh
 
 gcloud compute instance-groups managed create worker \
-    --size=3 \
+    --size=2 \
     --zone us-central1-a \
     --template=worker-template
 
