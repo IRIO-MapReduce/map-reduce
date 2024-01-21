@@ -68,3 +68,9 @@ target_include_directories(testbed PRIVATE ../common)
 target_sources(testbed PRIVATE ../common/utils.cc)
 target_sources(testbed PRIVATE ../common/mapreduce.cc)
 target_sources(testbed PRIVATE ../common/cloud-utils.cc)
+
+add_executable(gen_synthetic_test gen_synthetic_test.cc)
+
+target_include_directories(gen_synthetic_test PRIVATE ${GENERATED_DIR})
+target_include_directories(gen_synthetic_test PRIVATE ../common)
+target_sources(gen_synthetic_test PRIVATE ../common/test-utils.cc)
