@@ -10,39 +10,48 @@ constexpr size_t DEFAULT_SPLIT_SIZE_MB = 32;
 
 class Config {
 public:
-    inline void set_input_filepath(std::string const& filepath) noexcept {
+    inline void set_input_filepath(std::string const& filepath) noexcept
+    {
         this->input_filepath = filepath;
     }
 
-    inline void set_output_filepath(std::string const& filepath) noexcept {
+    inline void set_output_filepath(std::string const& filepath) noexcept
+    {
         this->output_filepath = filepath;
     }
 
-    inline void set_mapper_execpath(std::string const& execpath) noexcept {
+    inline void set_mapper_execpath(std::string const& execpath) noexcept
+    {
         this->mapper_execpath = execpath;
     }
 
-    inline void set_reducer_execpath(std::string const& execpath) noexcept {
+    inline void set_reducer_execpath(std::string const& execpath) noexcept
+    {
         this->reducer_execpath = execpath;
     }
 
-    inline void set_split_size_bytes(size_t split_size_bytes) noexcept {
+    inline void set_split_size_bytes(size_t split_size_bytes) noexcept
+    {
         this->split_size_bytes = split_size_bytes;
     }
 
-    inline void set_split_size_kb(size_t split_size_kb) noexcept { 
+    inline void set_split_size_kb(size_t split_size_kb) noexcept
+    {
         set_split_size_bytes(split_size_kb * 1024);
     }
 
-    inline void set_split_size_mb(size_t split_size_mb) noexcept {
+    inline void set_split_size_mb(size_t split_size_mb) noexcept
+    {
         set_split_size_bytes(split_size_mb * 1024 * 1024);
     }
 
-    inline void set_split_size(size_t split_size_mb) noexcept {
+    inline void set_split_size(size_t split_size_mb) noexcept
+    {
         set_split_size_mb(split_size_mb);
     }
 
-    inline void set_num_reducers(uint32_t num_reducers) noexcept {
+    inline void set_num_reducers(uint32_t num_reducers) noexcept
+    {
         this->num_reducers = num_reducers;
     }
 
@@ -57,6 +66,9 @@ private:
     friend void map_reduce(Config const& config);
 };
 
+/**
+ * Main library function, that performs map-reduce with the given config.
+ */
 void map_reduce(Config const& config);
 
 } // mapreduce

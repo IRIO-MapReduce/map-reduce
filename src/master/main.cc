@@ -1,45 +1,49 @@
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <unordered_map>
-#include <latch>
-#include <thread>
-#include <grpc++/grpc++.h>
 #include "mapreduce.grpc.pb.h"
+#include <fstream>
+#include <grpc++/grpc++.h>
+#include <iostream>
+#include <latch>
+#include <sstream>
+#include <thread>
+#include <unordered_map>
 
+#include "../common/cloud-utils.h"
+#include "../common/data-structures.h"
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
-#include "../common/data-structures.h"
-#include "../common/cloud-utils.h"
 #include "job-manager.h"
 
+using grpc::Channel;
+using grpc::ClientAsyncReader;
+using grpc::ClientAsyncReaderWriter;
+using grpc::ClientAsyncResponseReader;
+using grpc::ClientAsyncResponseReaderInterface;
+using grpc::ClientAsyncWriter;
+using grpc::ClientContext;
+using grpc::CompletionQueue;
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using grpc::Channel;
-using grpc::ClientContext;
-using grpc::CompletionQueue;
-using grpc::ClientAsyncResponseReader;
-using grpc::ClientAsyncReader;
-using grpc::ClientAsyncReaderWriter;
-using grpc::ClientAsyncWriter;
-using grpc::ClientAsyncResponseReaderInterface;
 
 using namespace mapreduce;
 
 class MasterServiceImpl final : public Master::Service {
 public:
-    Status ProcessClientRequest(ServerContext* context, const ClientRequest* request, ClientResponse* response) override {
-        std::cerr << "[MASTER] Received ClientRequest." << std::endl;
-        std::cerr << " ---------------  input_filepath: " << request->input_filepath() << std::endl;
-        std::cerr << " ---------------  output_filepath: " << request->output_filepath() << std::endl;
-        std::cerr << " ---------------  mapper_execpath: " << request->mapper_execpath() << std::endl;
-        std::cerr << " ---------------  reducer_execpath: " << request->reducer_execpath() << std::endl;
-        std::cerr << " ---------------  num_mappers: " << request->num_mappers() << std::endl;
-        std::cerr << " ---------------  num_reducers: " << request->num_reducers() << std::endl;
-        
-        auto map_group_id = job_manager.register_new_jobs_group(request->num_mappers(), request->num_reducers());
+    Status ProcessClientRequest(ServerContext* context,
+        const ClientRequest* request, ClientResponse* response) override
+    {
+        log_message("[MASTER] Received ClientRequest.",
+            google::logging::type::LogSeverity::INFO,
+            {{"input_filepath", request->input_filepath()},
+                {"output_filepath", request->output_filepath()},
+                {"mapper_execpath", request->mapper_execpath()},
+                {"reducer_execpath", request->reducer_execpath()},
+                {"num_mappers", std::to_string(request->num_mappers())},
+                {"num_reducers", std::to_string(request->num_reducers())}});
+
+        auto map_group_id = job_manager.register_new_jobs_group(
+            request->num_mappers(), request->num_reducers());
         auto reduce_group_id = map_group_id + 1;
 
         for (uint32_t i = 0; i < request->num_mappers(); i++) {
@@ -55,9 +59,11 @@ public:
             job_manager.add_job(map_group_id, map_request);
         }
 
-        std::cerr << "[MASTER] Map phase complete, waiting for mappers to finish." << std::endl;
+        log_message(
+            "[MASTER] Map phase complete, waiting for mappers to finish.");
         job_manager.wait_for_completion(map_group_id);
-        std::cerr << "[MASTER] Mappers finished, starting Reduce phase" << std::endl;
+        log_message("[MASTER] Mappers finished, starting Reduce phase",
+            google::logging::type::LogSeverity::INFO);
 
         for (uint32_t i = 0; i < request->num_reducers(); i++) {
             JobRequest reduce_request;
@@ -73,15 +79,18 @@ public:
             job_manager.add_job(reduce_group_id, reduce_request);
         }
 
-        std::cerr << "[MASTER] Reduce phase complete, waiting for reducers to finish." << std::endl;
+        log_message(
+            "[MASTER] Reduce phase complete, waiting for reducers to finish.");
         job_manager.wait_for_completion(reduce_group_id);
-        std::cerr << "[MASTER] Finished." << std::endl;
+        log_message("[MASTER] Reducers finished",
+            google::logging::type::LogSeverity::INFO);
 
         response->set_group_id(reduce_group_id);
         return Status::OK;
     }
 
-    void start_job_manager() {
+    void start_job_manager()
+    {
         auto master_ip = get_master_ip();
         assert(master_ip.has_value());
         job_manager_address = get_address(master_ip.value(), JOB_MANAGER_PORT);
@@ -93,25 +102,30 @@ private:
     std::string job_manager_address;
 };
 
-void RunMasterServer() {
-    std::cerr << "[MASTER] Started running" << std::endl;
+void RunMasterServer()
+{
+    log_message(
+        "[MASTER] Started running", google::logging::type::LogSeverity::INFO);
+
     std::string server_address(get_address(LISTENING_ADDRESS, MASTER_PORT));
     MasterServiceImpl service;
 
-    std::thread job_manager_thread([&service]() { service.start_job_manager(); });
+    std::thread job_manager_thread(
+        [&service]() { service.start_job_manager(); });
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cerr << "[MASTER] Server listening on " << server_address << std::endl;
+    log_message("[MASTER] Server listening on " + server_address);
     server->Wait();
 
     job_manager_thread.join();
 }
 
-int main() {
+int main()
+{
     RunMasterServer();
     return 0;
 }

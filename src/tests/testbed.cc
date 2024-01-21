@@ -2,7 +2,7 @@
 
 #include "testbed.h"
 
-typedef void (*test_case_fun) ();
+typedef void (*test_case_fun)();
 
 const test_case_fun test_cases[] = {
     test_case_1,
@@ -13,7 +13,8 @@ const test_case_fun test_cases[] = {
     test_case_huge
 };
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     if (argc != 2) {
         std::cout << "Usage: ./testbed [test_case_num]" << std::endl;
         return 0;

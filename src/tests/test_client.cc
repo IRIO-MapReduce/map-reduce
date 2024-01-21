@@ -7,7 +7,8 @@ const std::string FS = "/mnt/fs/";
 const std::string FS = "../../fs/";
 #endif
 
-int main() {
+int main()
+{
     mapreduce::Config config;
     config.set_input_filepath(FS + "input.txt");
     config.set_output_filepath(FS + "output.txt");

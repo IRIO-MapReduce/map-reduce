@@ -8,6 +8,7 @@ find_package(absl REQUIRED)
 find_package(Protobuf REQUIRED CONFIG)
 find_package(gRPC REQUIRED)
 find_package(google_cloud_cpp_compute REQUIRED)
+find_package(google_cloud_cpp_logging REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${Protobuf_INCLUDE_DIRS})
@@ -43,7 +44,7 @@ add_library(grpc_mapreduce_proto
 )
 
 add_executable(test_client test_client.cc)
-target_link_libraries(test_client PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(test_client PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(test_client PRIVATE ${GENERATED_DIR})
 target_include_directories(test_client PRIVATE ../common)
@@ -52,7 +53,7 @@ target_sources(test_client PRIVATE ../common/mapreduce.cc)
 target_sources(test_client PRIVATE ../common/cloud-utils.cc)
 
 add_executable(client client.cc)
-target_link_libraries(client PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(client PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(client PRIVATE ${GENERATED_DIR})
 target_include_directories(client PRIVATE ../common)
@@ -61,7 +62,7 @@ target_sources(client PRIVATE ../common/mapreduce.cc)
 target_sources(client PRIVATE ../common/cloud-utils.cc)
 
 add_executable(testbed testbed.cc)
-target_link_libraries(testbed PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(testbed PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(testbed PRIVATE ${GENERATED_DIR})
 target_include_directories(testbed PRIVATE ../common)

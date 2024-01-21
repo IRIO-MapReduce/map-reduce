@@ -1,0 +1,8 @@
+BasedOnStyle: Webkit
+ColumnLimit: 80
+Cpp11BracedListStyle: true
+IncludeBlocks: Preserve
+IndentWidth: 4
+Standard: Latest
+TabWidth: 4
+UseTab: Never

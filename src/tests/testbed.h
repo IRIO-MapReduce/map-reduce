@@ -10,7 +10,8 @@ const std::string FS = "/mnt/fs/";
 const std::string FS = "../../fs/";
 #endif
 
-void test_case_1() {
+void test_case_1()
+{
     std::cerr << "Test case 1" << std::endl;
     mapreduce::Config config;
     config.set_input_filepath(FS + "input.txt");
@@ -23,7 +24,8 @@ void test_case_1() {
     mapreduce::map_reduce(config);
 }
 
-void test_case_2() {
+void test_case_2()
+{
     std::cerr << "Test case 2" << std::endl;
     mapreduce::Config config;
     config.set_input_filepath(FS + "input-big.txt");
@@ -36,7 +38,8 @@ void test_case_2() {
     mapreduce::map_reduce(config);
 }
 
-void test_case_3() {
+void test_case_3()
+{
     std::cerr << "Test case 3" << std::endl;
     mapreduce::Config config;
     config.set_input_filepath(FS + "input-big.txt");
@@ -49,7 +52,8 @@ void test_case_3() {
     mapreduce::map_reduce(config);
 }
 
-void test_case_randomly_crashing() {
+void test_case_randomly_crashing()
+{
     std::cerr << "Test case 4" << std::endl;
     mapreduce::Config config;
     config.set_input_filepath(FS + "input-big.txt");
@@ -62,7 +66,8 @@ void test_case_randomly_crashing() {
     mapreduce::map_reduce(config);
 }
 
-void test_case_inter_write_crashing() {
+void test_case_inter_write_crashing()
+{
     std::cerr << "Test case 5" << std::endl;
     mapreduce::Config config;
     config.set_input_filepath(FS + "input-big.txt");
