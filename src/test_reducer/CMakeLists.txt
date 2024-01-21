@@ -98,7 +98,7 @@ target_sources(reducer_inter_write_crashing PRIVATE ../common/cloud-utils.cc)
 target_sources(reducer_inter_write_crashing PRIVATE ../common/test-utils.cc)
 
 add_executable(reducer_inter_write_crashing_huge reducer_inter_write_crashing_huge.cc)
-target_link_libraries(reducer_inter_write_crashing_huge PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(reducer_inter_write_crashing_huge PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(reducer_inter_write_crashing_huge PRIVATE ${GENERATED_DIR})
 target_include_directories(reducer_inter_write_crashing_huge PRIVATE ../common)

@@ -59,15 +59,17 @@ std::string LoadBalancer::get_worker_ip()
     while (true) {
         auto worker_ip = get_worker_ip_unchecked();
         auto health_check_address = get_address(worker_ip, HEALTH_CHECK_PORT);
-        log_message(
-            "[LOAD BALANCER] Checking worker health: " + health_check_address);
+        // log_message(
+        //     "[LOAD BALANCER] Checking worker health: " +
+        //     health_check_address);
         if (health_checker.get_status(health_check_address)
             == HealthStatus::HEALTHY) {
-            log_message("[LOAD BALANCER] Found healthy worker: " + worker_ip);
+            // log_message("[LOAD BALANCER] Found healthy worker: " +
+            // worker_ip);
             return worker_ip;
         }
 
-        log_message("[LOAD BALANCER] Found unhealthy worker: " + worker_ip);
+        // log_message("[LOAD BALANCER] Found unhealthy worker: " + worker_ip);
 
         std::unique_lock lock(mutex);
         unhealthy_workers.push_back(worker_ip);
@@ -86,11 +88,11 @@ void LoadBalancer::start()
 {
     std::thread health_checker_thread([this]() { health_checker.start(); });
     while (true) {
-        log_message("[LOAD BALANCER] Refreshing workers...");
+        // log_message("[LOAD BALANCER] Refreshing workers...");
         refresh_workers();
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        log_message("[LOAD BALANCER] Checking unhealthy workers...");
+        // log_message("[LOAD BALANCER] Checking unhealthy workers...");
         check_unhealthy_workers();
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
@@ -111,7 +113,8 @@ void LoadBalancer::check_unhealthy_workers()
             auto idx = idx_of_worker[worker_ip];
             release_worker(idx);
         } else {
-            log_message("[LOAD BALANCER] Worker still unhealthy: " + worker_ip);
+            // log_message("[LOAD BALANCER] Worker still unhealthy: " +
+            // worker_ip);
             new_unhealthy_workers.push_back(worker_ip);
         }
     }
@@ -142,7 +145,8 @@ void LoadBalancer::refresh_workers()
             available_workers++;
             cv.notify_one();
         } else {
-            log_message("[LOAD BALANCER] Found existing worker: " + worker_ip);
+            // log_message("[LOAD BALANCER] Found existing worker: " +
+            // worker_ip);
             is_busy[i].store(false, std::memory_order_release);
             if (old_is_busy[it->second]) {
                 available_workers++;
@@ -154,10 +158,10 @@ void LoadBalancer::refresh_workers()
     worker_ips = new_worker_ips;
     idx_of_worker = new_idx_of_worker;
 
-    log_message("[LOAD BALANCER] Refreshed workers.");
-    for (auto const& worker_ip : worker_ips) {
-        log_message("\t[LOAD BALANCER] Worker: " + worker_ip);
-    }
+    // log_message("[LOAD BALANCER] Refreshed workers.");
+    // for (auto const& worker_ip : worker_ips) {
+    //     log_message("\t[LOAD BALANCER] Worker: " + worker_ip);
+    // }
 }
 
 } // mapreduce

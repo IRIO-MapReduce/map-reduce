@@ -16,12 +16,12 @@ namespace mapreduce {
 
 void map_reduce(Config const& config)
 {
-    log_message("[CLIENT] Starting mapreduce.",
-        google::logging::type::LogSeverity::INFO);
+    // log_message("[CLIENT] Starting mapreduce.",
+    //     google::logging::type::LogSeverity::INFO);
 
     std::string master_address(
         get_address(get_master_ip().value(), MASTER_PORT));
-    log_message("[CLIENT] Connecting to master at: " + master_address);
+    // log_message("[CLIENT] Connecting to master at: " + master_address);
     std::shared_ptr<Channel> channel = grpc::CreateChannel(
         master_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<Master::Stub> masterStub = Master::NewStub(channel);
@@ -54,9 +54,8 @@ void map_reduce(Config const& config)
         = masterStub->ProcessClientRequest(&context, request, &response);
     assert(status.ok());
 
-    log_message("[CLIENT] MapReduce finished. Output files group id is "
-            + std::to_string(response.group_id()),
-        google::logging::type::LogSeverity::INFO);
+    std::cerr << "[CLIENT] MapReduce finished. Output files group id is "
+              << std::to_string(response.group_id()) << std::endl;
 }
 
 } // mapreduce
