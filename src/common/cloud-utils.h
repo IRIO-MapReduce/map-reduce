@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-#define LOCAL
-
 namespace mapreduce {
 
 const std::string PROJECT_ID = "pb-map-reduce";
