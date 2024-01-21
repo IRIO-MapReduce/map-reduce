@@ -7,8 +7,8 @@ project(test_mapper)
 find_package(absl REQUIRED)
 find_package(Protobuf REQUIRED CONFIG)
 find_package(gRPC REQUIRED)
-# find_package(google_cloud_cpp_common REQUIRED)
 find_package(google_cloud_cpp_compute REQUIRED)
+find_package(google_cloud_cpp_logging REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -46,7 +46,7 @@ add_library(grpc_mapreduce_proto
 )
 
 add_executable(simple_mapper simple_mapper.cc)
-target_link_libraries(simple_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(simple_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(simple_mapper PRIVATE ${GENERATED_DIR})
 target_include_directories(simple_mapper PRIVATE ../common)
@@ -56,7 +56,7 @@ target_sources(simple_mapper PRIVATE ../common/mapper.cc)
 target_sources(simple_mapper PRIVATE ../common/cloud-utils.cc)
 
 add_executable(word_count_mapper word_count_mapper.cc)
-target_link_libraries(word_count_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(word_count_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(word_count_mapper PRIVATE ${GENERATED_DIR})
 target_include_directories(word_count_mapper PRIVATE ../common)
@@ -66,7 +66,7 @@ target_sources(word_count_mapper PRIVATE ../common/mapper.cc)
 target_sources(word_count_mapper PRIVATE ../common/cloud-utils.cc)
 
 add_executable(long_mapper long_mapper.cc)
-target_link_libraries(long_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(long_mapper PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(long_mapper PRIVATE ${GENERATED_DIR})
 target_include_directories(long_mapper PRIVATE ../common)
