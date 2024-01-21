@@ -93,7 +93,7 @@ void Reducer::start(int argc, char** argv) {
     this->job_manager_address = job.job_manager_address();
     this->num_mappers = job.num_inputs();
 
-    log_message("[REDUCER] Starting reduce()");
+    log_message("[REDUCER] Starting reduce()", google::logging::type::LogSeverity::INFO);
     reduce();
 
     std::string hashed_output_filepath = output_filepath;
@@ -135,7 +135,7 @@ void Reducer::start(int argc, char** argv) {
 
     assert(status.ok());
     
-    log_message("[REDUCER] Reduce completed!");
+    log_message("[REDUCER] Reduce completed!", google::logging::type::LogSeverity::INFO);
 }
     
 

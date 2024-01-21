@@ -15,7 +15,7 @@ using grpc::Status;
 namespace mapreduce {
 
 void map_reduce(Config const& config) {
-    log_message("[CLIENT] Starting mapreduce.");
+    log_message("[CLIENT] Starting mapreduce.", google::logging::type::LogSeverity::INFO);
 
     std::string master_address(get_address(get_master_ip().value(), MASTER_PORT));
     log_message("[CLIENT] Connecting to master at: " + master_address);
@@ -48,7 +48,8 @@ void map_reduce(Config const& config) {
     Status status = masterStub->ProcessClientRequest(&context, request, &response);
     assert(status.ok());
 
-    log_message("[CLIENT] MapReduce finished. Output files group id is " + std::to_string(response.group_id()));
+    log_message("[CLIENT] MapReduce finished. Output files group id is " + std::to_string(response.group_id()), 
+                google::logging::type::LogSeverity::INFO);
 }
 
 } // mapreduce

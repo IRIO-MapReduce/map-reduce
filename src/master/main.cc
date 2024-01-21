@@ -32,7 +32,7 @@ class MasterServiceImpl final : public Master::Service {
 public:
     Status ProcessClientRequest(ServerContext* context, const ClientRequest* request, ClientResponse* response) override {
         log_message("[MASTER] Received ClientRequest.",
-                    google::logging::type::LogSeverity::DEFAULT, {
+                    google::logging::type::LogSeverity::INFO, {
                         {"input_filepath", request->input_filepath()},
                         {"output_filepath", request->output_filepath()},
                         {"mapper_execpath", request->mapper_execpath()},
@@ -59,7 +59,7 @@ public:
 
         log_message("[MASTER] Map phase complete, waiting for mappers to finish.");
         job_manager.wait_for_completion(map_group_id);
-        log_message("[MASTER] Mappers finished, starting Reduce phase");
+        log_message("[MASTER] Mappers finished, starting Reduce phase", google::logging::type::LogSeverity::INFO);
 
         for (uint32_t i = 0; i < request->num_reducers(); i++) {
             JobRequest reduce_request;
@@ -77,7 +77,7 @@ public:
 
         log_message("[MASTER] Reduce phase complete, waiting for reducers to finish.");
         job_manager.wait_for_completion(reduce_group_id);
-        log_message("[MASTER] Reducers finished");
+        log_message("[MASTER] Reducers finished", google::logging::type::LogSeverity::INFO);
 
         response->set_group_id(reduce_group_id);
         return Status::OK;
@@ -96,7 +96,7 @@ private:
 };
 
 void RunMasterServer() {
-    log_message("[MASTER] Started running");
+    log_message("[MASTER] Started running", google::logging::type::LogSeverity::INFO);
 
     std::string server_address(get_address(LISTENING_ADDRESS, MASTER_PORT));
     MasterServiceImpl service;

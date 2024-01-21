@@ -60,7 +60,7 @@ void Mapper::emit(key_t const& key, val_t const& val) {
 
 void Mapper::start(int argc, char** argv) {
     assert(argc == 1);
-    log_message("[MAPPER] Starting worker...");
+    log_message("[MAPPER] Starting worker...", google::logging::type::LogSeverity::INFO);
 
     srand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     hash = get_random_string();
@@ -88,7 +88,7 @@ void Mapper::start(int argc, char** argv) {
     this->job_manager_address = job.job_manager_address();
 
     log_message("[MAPPER] Worker info retrieved, starting map...", 
-                google::logging::type::LogSeverity::DEFAULT,{
+                google::logging::type::LogSeverity::INFO,{
                     {"group_id", std::to_string(this->group_id)},
                     {"job_id", std::to_string(this->job_id)},
                     {"input_filepath", this->input_filepath},
@@ -139,7 +139,7 @@ void Mapper::start(int argc, char** argv) {
 
     assert(status.ok());
     
-    log_message("[MAPPER] Map completed!");
+    log_message("[MAPPER] Map completed!", google::logging::type::LogSeverity::INFO);
 }
 
 } // mapreduce
