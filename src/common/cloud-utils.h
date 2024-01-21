@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <google/cloud/logging/v2/logging_service_v2_client.h>
 
 namespace mapreduce {
 
@@ -33,6 +34,31 @@ inline std::string get_address(std::string const& ip, uint16_t port) {
 }
 
 std::string uri_to_url(std::string const& address);
+
+/** 
+ * Logs a message to the Google Cloud Logging service.
+ * @param message The message to log.
+ * @param severity The severity of the message. One of the following:
+ *  1. DEFAULT
+ *  2. DEBUG
+ *  3. INFO
+ *  4. NOTICE
+ *  5. WARNING
+ *  6. ERROR
+ *  7. CRITICAL
+ *  8. ALERT
+ *  9. EMERGENCY
+ * @param name The name of the log to write to.
+ * @param resoure_type The type of resource. Should be one of specific, described at:
+ * https://cloud.google.com/monitoring/api/resources
+ * The last two parameters are optional for future use and not currently widely used.
+*/
+void log_message(
+    std::string const& message, 
+    google::logging::type::LogSeverity severity = google::logging::type::LogSeverity::DEFAULT,
+    std::string const& name = "mapreduce",
+    std::string const& resource_type = "global"
+);
 
 } // mapreduce
 
