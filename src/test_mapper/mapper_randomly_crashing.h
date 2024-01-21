@@ -15,6 +15,7 @@ public:
         mapreduce::key_t key;
         mapreduce::val_t val;
 
+        bool fail = (rand_in_range(0, odds-1) == 0);
         if (fail) {
             exit(1);
         }
@@ -26,11 +27,11 @@ public:
         }
     }
     MapperRandomlyCrashing(int odds, int wait_n) {
-        bool fail = (rand_in_range(0, odds-1) == 0);
+        this->odds = odds;
         this->wait_n = wait_n;
     }
 private:
-    bool fail;
+    int odds;
     int wait_n;
 };
 

@@ -16,6 +16,8 @@ public:
         mapreduce::key_t key;
         mapreduce::val_t val;
 
+        bool fail = (rand_in_range(0, odds-1) == 0);
+
         while (get_next_pair(key, val)) {
             std::cerr << "[REDUCER_INTER_WRITE_CRASHING IMPL] key: " << key << ", val: " << val << std::endl;
             emit(key, val);
@@ -28,13 +30,13 @@ public:
             }
         }
     }
-    ReducerInterWriteCrashing(int odds, int steps_rng, int wait_n) {
-        fail = (rand_in_range(0, odds-1) == 0);
-        steps = rand_in_range(1, steps_rng);
+    ReducerInterWriteCrashing(int odds, int steps, int wait_n) {
+        this->odds = odds;
+        this->steps = steps;
         this->wait_n = wait_n;
     }
 private:
-    bool fail;
+    int odds;
     int steps;
     int wait_n;
 };

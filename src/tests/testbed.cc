@@ -13,12 +13,16 @@ const test_case_fun test_cases[] = {
 };
 
 int main(int argc, char* argv[]) {
-
-    if (argc != 1) {
+    if (argc != 2) {
         std::cout << "Usage: ./testbed [test_case_num]" << std::endl;
+        return 0;
     }
 
-    int test_case_num = atoi(argv[1]);
+    int test_case_num = atoi(argv[1]) - 1;
+
+    if (test_case_num < 1 || test_case_num > 5) {
+        std::cout << "test_case_num has to be in range [1, 5]" << std::endl;
+    }
 
     test_cases[test_case_num]();
 
