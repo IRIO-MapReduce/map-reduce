@@ -39,6 +39,18 @@ protected:
     void emit(key_t const& key, val_t const& value);
 
 private:
+    /**
+     * Opens input and output files. Should be invoked once per map(). Speeds up
+     * writing and reading.
+     */
+    void open_files();
+
+    /**
+     * Closes input and output files. Should be invoked once per map(). Speeds
+     * up writing and reading.
+     */
+    void close_files();
+
     uint32_t group_id;
     uint32_t job_id;
     uint32_t num_reducers;
@@ -46,6 +58,7 @@ private:
     std::string job_manager_address;
     std::string hash;
     std::fstream input_file;
+    std::vector<std::ofstream> output_files;
 };
 
 } // mapreduce
