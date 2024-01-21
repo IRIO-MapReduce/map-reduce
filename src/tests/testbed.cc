@@ -11,9 +11,10 @@ const test_case_fun test_cases[] = {
     test_case_randomly_crashing,
     test_case_inter_write_crashing,
     test_case_huge,
-    test_case_enormous
+    test_case_enormous,
+    test_case_load
 };
-const int test_cases_num = 7;
+const int test_cases_num = 8;
 
 int main(int argc, char* argv[])
 {

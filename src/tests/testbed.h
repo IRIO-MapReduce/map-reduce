@@ -106,4 +106,17 @@ void test_case_enormous() {
     mapreduce::map_reduce(config); 
 }
 
+void test_case_load() {
+    std::cerr << "Test case 8" << std::endl;
+    mapreduce::Config config;
+    config.set_input_filepath(FS + "load-test.txt");
+    config.set_output_filepath(FS + "output-load-test.txt");
+    config.set_mapper_execpath(FS + "word_count_mapper");
+    config.set_reducer_execpath(FS + "word_count_reducer");
+    config.set_split_size_bytes(16000000);
+    config.set_num_reducers(20);
+
+    mapreduce::map_reduce(config); 
+}
+
 #endif // TESTBED_H
