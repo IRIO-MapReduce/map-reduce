@@ -83,8 +83,6 @@ std::string LoadBalancer::get_worker_ip()
             == HealthStatus::HEALTHY)
             return worker_ip;
 
-        std::cerr << "JAJO";
-
         {
             std::unique_lock lock(mutex);
 

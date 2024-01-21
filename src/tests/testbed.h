@@ -4,6 +4,8 @@
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 
+#define LOCAL
+
 #ifndef LOCAL
 const std::string FS = "/mnt/fs/";
 #else
