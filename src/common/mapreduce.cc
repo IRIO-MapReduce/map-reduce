@@ -1,12 +1,12 @@
 #include <fstream>
-#include <iostream>
-#include <grpcpp/grpcpp.h>
 #include <grpc++/grpc++.h>
+#include <grpcpp/grpcpp.h>
+#include <iostream>
 
+#include "cloud-utils.h"
 #include "mapreduce.grpc.pb.h"
 #include "mapreduce.h"
 #include "utils.h"
-#include "cloud-utils.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -14,17 +14,21 @@ using grpc::Status;
 
 namespace mapreduce {
 
-void map_reduce(Config const& config) {
-    log_message("[CLIENT] Starting mapreduce.", google::logging::type::LogSeverity::INFO);
+void map_reduce(Config const& config)
+{
+    log_message("[CLIENT] Starting mapreduce.",
+        google::logging::type::LogSeverity::INFO);
 
-    std::string master_address(get_address(get_master_ip().value(), MASTER_PORT));
+    std::string master_address(
+        get_address(get_master_ip().value(), MASTER_PORT));
     log_message("[CLIENT] Connecting to master at: " + master_address);
-    std::shared_ptr<Channel> channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
+    std::shared_ptr<Channel> channel = grpc::CreateChannel(
+        master_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<Master::Stub> masterStub = Master::NewStub(channel);
 
     validate_executable(config.mapper_execpath);
     validate_executable(config.reducer_execpath);
-    
+
     if (!has_valid_format(config.input_filepath)) {
         throw std::invalid_argument("invalid input_filepath");
     }
@@ -33,7 +37,8 @@ void map_reduce(Config const& config) {
         throw std::invalid_argument("num_reducers must be greater than 0");
     }
 
-    size_t num_mappers = split_file_bytes(config.input_filepath, config.split_size_bytes);
+    size_t num_mappers
+        = split_file_bytes(config.input_filepath, config.split_size_bytes);
 
     ClientRequest request;
     request.set_input_filepath(config.input_filepath);
@@ -45,11 +50,13 @@ void map_reduce(Config const& config) {
 
     ClientContext context;
     ClientResponse response;
-    Status status = masterStub->ProcessClientRequest(&context, request, &response);
+    Status status
+        = masterStub->ProcessClientRequest(&context, request, &response);
     assert(status.ok());
 
-    log_message("[CLIENT] MapReduce finished. Output files group id is " + std::to_string(response.group_id()), 
-                google::logging::type::LogSeverity::INFO);
+    log_message("[CLIENT] MapReduce finished. Output files group id is "
+            + std::to_string(response.group_id()),
+        google::logging::type::LogSeverity::INFO);
 }
 
 } // mapreduce

@@ -2,17 +2,13 @@
 
 #include "testbed.h"
 
-typedef void (*test_case_fun) ();
+typedef void (*test_case_fun)();
 
-const test_case_fun test_cases[] = {
-    test_case_1,
-    test_case_2,
-    test_case_3,
-    test_case_4,
-    test_case_5
-};
+const test_case_fun test_cases[]
+    = {test_case_1, test_case_2, test_case_3, test_case_4, test_case_5};
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     if (argc != 2) {
         std::cout << "Usage: ./testbed [test_case_num]" << std::endl;
         return 0;

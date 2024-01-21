@@ -3,11 +3,13 @@
 
 #include "mapper_inter_write_crashing.h"
 
-int main(int argc, char** argv) {
-    std::cerr << "[MAPPER_INTER_WRITE_CRASHING WORKER] Starting binary" << std::endl;
+int main(int argc, char** argv)
+{
+    std::cerr << "[MAPPER_INTER_WRITE_CRASHING WORKER] Starting binary"
+              << std::endl;
     MapperInterWriteCrashing mapper(7, 2, 500);
 
     mapper.start(argc, argv);
-    
+
     return 0;
 }
