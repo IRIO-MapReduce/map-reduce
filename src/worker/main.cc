@@ -23,13 +23,6 @@ public:
     Status ProcessJobRequest(ServerContext* context, const JobRequest* request,
         Response* response) override
     {
-        // log_message("[WORKER LISTENER] Received JobRequest.",
-        //     google::logging::type::LogSeverity::DEFAULT,
-        //     {
-        //         {"group_id", std::to_string(request->group_id())},
-        //         {"job_id", std::to_string(request->job_id())},
-        //     });
-
         // Save config for later
         request_queue.add(*request);
 
@@ -42,8 +35,6 @@ public:
     Status GetFreeTask(ServerContext* context, const ConfigRequest* request,
         JobRequest* job_request) override
     {
-        // log_message("[REDUCER LISTENER] Config request.");
-
         // Respond with saved config.
         *job_request = request_queue.get_one(request->execpath());
 
@@ -53,7 +44,6 @@ public:
     void get_job_manager_address()
     {
         while (true) {
-            // log_message("[WORKER] Trying to acquire job manager address...");
             auto job_manager_ip = get_master_ip();
 
             if (job_manager_ip.has_value()) {

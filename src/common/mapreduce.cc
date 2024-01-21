@@ -16,12 +16,8 @@ namespace mapreduce {
 
 void map_reduce(Config const& config)
 {
-    // log_message("[CLIENT] Starting mapreduce.",
-    //     google::logging::type::LogSeverity::INFO);
-
     std::string master_address(
         get_address(get_master_ip().value(), MASTER_PORT));
-    // log_message("[CLIENT] Connecting to master at: " + master_address);
     std::shared_ptr<Channel> channel = grpc::CreateChannel(
         master_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<Master::Stub> masterStub = Master::NewStub(channel);

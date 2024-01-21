@@ -60,6 +60,15 @@ private:
      */
     bool try_acquire_worker();
 
+    /**
+     * Tries to acquire a token for a specific worker.
+     * If successful, updates this thread as more "busy", thus possibly
+     * disallowing other jobs to be executed on this worker.
+     * May spuriously fail even if the worker is able to accept more jobs.
+     * Returns true if successful.
+     */
+    bool try_acquire_worker(uint32_t idx);
+
     HealthChecker health_checker;
 
     std::shared_mutex mutex;
@@ -67,7 +76,7 @@ private:
     std::atomic<uint32_t> available_workers;
     std::vector<std::string> worker_ips;
     std::unordered_map<std::string, uint32_t> idx_of_worker;
-    std::vector<std::atomic<bool>> is_busy;
+    std::vector<std::atomic<uint32_t>> busy_threads;
     std::vector<std::string> unhealthy_workers;
 };
 

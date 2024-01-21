@@ -59,11 +59,7 @@ public:
             job_manager.add_job(map_group_id, map_request);
         }
 
-        // log_message(
-        //     "[MASTER] Map phase complete, waiting for mappers to finish.");
         job_manager.wait_for_completion(map_group_id);
-        // log_message("[MASTER] Mappers finished, starting Reduce phase",
-        //     google::logging::type::LogSeverity::INFO);
 
         for (uint32_t i = 0; i < request->num_reducers(); i++) {
             JobRequest reduce_request;
@@ -79,12 +75,7 @@ public:
             job_manager.add_job(reduce_group_id, reduce_request);
         }
 
-        // log_message(
-        //     "[MASTER] Reduce phase complete, waiting for reducers to
-        //     finish.");
         job_manager.wait_for_completion(reduce_group_id);
-        // log_message("[MASTER] Reducers finished",
-        //     google::logging::type::LogSeverity::INFO);
 
         response->set_group_id(reduce_group_id);
         return Status::OK;
@@ -105,10 +96,6 @@ private:
 
 void RunMasterServer()
 {
-    // log_message(
-    //     "[MASTER] Started running",
-    //     google::logging::type::LogSeverity::INFO);
-
     std::string server_address(get_address(LISTENING_ADDRESS, MASTER_PORT));
     MasterServiceImpl service;
 
