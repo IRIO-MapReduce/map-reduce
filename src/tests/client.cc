@@ -3,9 +3,12 @@
 #include "../common/mapreduce.h"
 #include "../common/utils.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     if (argc != 7) {
-        std::cerr << "[ERROR] Usage: ./client <mapper> <reducer> <input_file> <output_file> <split size> <number of reducers>" << std::endl;
+        std::cerr << "[ERROR] Usage: ./client <mapper> <reducer> <input_file> "
+                     "<output_file> <split size> <number of reducers>"
+                  << std::endl;
         return 1;
     }
 
