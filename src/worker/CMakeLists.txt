@@ -9,6 +9,7 @@ find_package(Protobuf REQUIRED CONFIG)
 find_package(gRPC REQUIRED)
 find_package(google_cloud_cpp_common REQUIRED)
 find_package(google_cloud_cpp_compute REQUIRED)
+find_package(google_cloud_cpp_logging REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${Protobuf_INCLUDE_DIRS})
@@ -44,7 +45,7 @@ add_library(grpc_mapreduce_proto
 )
 
 add_executable(main main.cc)
-target_link_libraries(main PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(main PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(main PRIVATE ${GENERATED_DIR})
 target_sources(main PRIVATE health-check-service.cc)

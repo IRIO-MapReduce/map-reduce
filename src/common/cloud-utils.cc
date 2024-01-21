@@ -1,4 +1,5 @@
 #include <google/cloud/compute/instances/v1/instances_client.h>
+#include <google/cloud/logging/v2/logging_service_v2_client.h>
 
 #include "cloud-utils.h"
 
@@ -68,6 +69,32 @@ std::string uri_to_url(std::string const& address) {
     assert (pos != std::string::npos);
     result = result.substr(0, pos);
     return result;
+}
+
+void log_message(
+    std::string const& message, 
+    google::logging::type::LogSeverity severity = google::logging::type::LogSeverity::DEFAULT,
+    std::string const& name = "mapreduce",
+    std::string const& resource_type = "global"
+) {
+    namespace logging = ::google::cloud::logging_v2;
+    auto client = logging::LoggingServiceV2Client(logging::MakeLoggingServiceV2Connection());
+
+    auto request = google::logging::v2::WriteLogEntriesRequest();
+    auto log_entry = request.add_entries();
+    auto log_name = "projects/" + PROJECT_ID + "/logs/" + name;
+    
+    request.set_log_name(log_name);
+
+    log_entry->set_text_payload(message);
+    log_entry->set_severity(severity);
+    log_entry->mutable_resource()->set_type(resource_type);
+
+    auto response = client.WriteLogEntries(request);
+
+    if (!response.ok()) {
+        std::cerr << "Failed to log message: " << response.status().message() << std::endl;
+    }
 }
 
 } // mapreduce
