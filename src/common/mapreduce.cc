@@ -15,10 +15,10 @@ using grpc::Status;
 namespace mapreduce {
 
 void map_reduce(Config const& config) {
-    std::cerr << "[CLIENT] Starting mapreduce." << std::endl;
+    log_message("[CLIENT] Starting mapreduce.");
 
     std::string master_address(get_address(get_master_ip().value(), MASTER_PORT));
-    std::cerr << "[CLIENT] Connecting to master at: " << master_address << std::endl;
+    log_message("[CLIENT] Connecting to master at: " + master_address);
     std::shared_ptr<Channel> channel = grpc::CreateChannel(master_address, grpc::InsecureChannelCredentials());
     std::unique_ptr<Master::Stub> masterStub = Master::NewStub(channel);
 
@@ -48,7 +48,7 @@ void map_reduce(Config const& config) {
     Status status = masterStub->ProcessClientRequest(&context, request, &response);
     assert(status.ok());
 
-    std::cerr << "[CLIENT] MapReduce finished. Output files group id is " << response.group_id() << std::endl;
+    log_message("[CLIENT] MapReduce finished. Output files group id is " + std::to_string(response.group_id()));
 }
 
 } // mapreduce

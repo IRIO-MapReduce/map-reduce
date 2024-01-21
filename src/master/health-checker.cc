@@ -2,6 +2,7 @@
 #define HEALTH_CHECKER_CC
 
 #include "health-checker.h"
+#include "cloud-utils.h"
 
 using grpc::Status;
 using grpc::Channel;
@@ -55,7 +56,7 @@ HealthStatus HealthChecker::get_status(std::string ip) {
 }
 
 HealthStatus HealthChecker::check(std::string ip) {
-    std::cerr << "[HEALTH CHECKER] Sending health check to worker: " << ip << "." << std::endl;
+    log_message("[HEALTH CHECKER] Sending health check to worker: " + ip + ".");
 
     std::unique_ptr<Health::Stub> health_stub(Health::NewStub(
         grpc::CreateChannel(ip, grpc::InsecureChannelCredentials())
@@ -73,17 +74,17 @@ HealthStatus HealthChecker::check(std::string ip) {
 
     HealthStatus health_status = UNHEALTHY;
     if (status.ok()) {
-        std::cerr << "[HEALTH CHECKER] Response from " << ip << " received." << std::endl;
+        log_message("[HEALTH CHECKER] Response from " + ip + " received.");
         health_status = response.status();
     }
 
-    std::cerr << "[HEALTH CHECKER] Health status of " << ip << ": " << health_status << std::endl;
+    log_message("[HEALTH CHECKER] Health status of " + ip + ": " + std::to_string(health_status));
 
     return health_status; 
 }
 
 void HealthChecker::start() {
-    std::cerr << "[HEALTH CHECKER] Started." << std::endl;
+    log_message("[HEALTH CHECKER] Started.");
     while (true) {
         std::vector<std::string> worker_list = monitored_workers.get_workers();
 

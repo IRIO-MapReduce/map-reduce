@@ -56,6 +56,7 @@ std::string uri_to_url(std::string const& address);
 void log_message(
     std::string const& message, 
     google::logging::type::LogSeverity severity = google::logging::type::LogSeverity::DEFAULT,
+    std::map<std::string, std::string> const& labels = {},
     std::string const& name = "mapreduce",
     std::string const& resource_type = "global"
 );

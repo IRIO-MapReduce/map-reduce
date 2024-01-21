@@ -1,6 +1,7 @@
 #ifndef HEALTH_CHECKER_CC
 #define HEALTH_CHECKER_CC
 
+#include "cloud-utils.h"
 #include "health-check-service.h"
 
 using grpc::Server;
@@ -11,7 +12,7 @@ using grpc::Status;
 namespace mapreduce {
 
 Status HealthCheckServiceImpl::Check(ServerContext* context, const HealthCheckRequest* request, HealthCheckResponse* response) {
-    std::cerr << "[HEALTH CHECK SERVICE] Received Health Check." << std::endl;
+    log_message("[HEALTH CHECK SERVICE] Received Health Check.");
 
     response->set_status(HEALTHY);
     
@@ -24,7 +25,7 @@ void HealthCheckServiceImpl::start() {
     builder.RegisterService(this);
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cerr << "[HEALTH CHECK SERVICE] Service listening on " << service_address << std::endl;
+    log_message("[HEALTH CHECK SERVICE] Service listening on " + service_address);
 
     server->Wait();
 }

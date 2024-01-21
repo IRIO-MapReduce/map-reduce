@@ -73,9 +73,10 @@ std::string uri_to_url(std::string const& address) {
 
 void log_message(
     std::string const& message, 
-    google::logging::type::LogSeverity severity = google::logging::type::LogSeverity::DEFAULT,
-    std::string const& name = "mapreduce",
-    std::string const& resource_type = "global"
+    google::logging::type::LogSeverity severity,
+    std::map<std::string, std::string> const& labels,
+    std::string const& name,
+    std::string const& resource_type
 ) {
     namespace logging = ::google::cloud::logging_v2;
     auto client = logging::LoggingServiceV2Client(logging::MakeLoggingServiceV2Connection());
@@ -89,6 +90,10 @@ void log_message(
     log_entry->set_text_payload(message);
     log_entry->set_severity(severity);
     log_entry->mutable_resource()->set_type(resource_type);
+
+    for (auto const& [key, value] : labels) {
+        (*log_entry->mutable_labels())[key] = value;
+    }
 
     auto response = client.WriteLogEntries(request);
 
