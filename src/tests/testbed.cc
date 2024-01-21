@@ -4,8 +4,14 @@
 
 typedef void (*test_case_fun)();
 
-const test_case_fun test_cases[]
-    = {test_case_1, test_case_2, test_case_3, test_case_4, test_case_5};
+const test_case_fun test_cases[] = {
+    test_case_1,
+    test_case_2,
+    test_case_3,
+    test_case_randomly_crashing,
+    test_case_inter_write_crashing,
+    test_case_huge
+};
 
 int main(int argc, char* argv[])
 {
@@ -16,8 +22,8 @@ int main(int argc, char* argv[])
 
     int test_case_num = atoi(argv[1]) - 1;
 
-    if (test_case_num < 1 || test_case_num > 5) {
-        std::cout << "test_case_num has to be in range [1, 5]" << std::endl;
+    if (test_case_num < 1 || test_case_num > 6) {
+        std::cout << "test_case_num has to be in range [1, 6]" << std::endl;
     }
 
     test_cases[test_case_num]();

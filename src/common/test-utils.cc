@@ -17,6 +17,5 @@ int rand_in_range(int a, int b)
 {
     srand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     int result = rand() % (b - a + 1) + a;
-    std::cerr << result << std::endl;
     return result;
 }

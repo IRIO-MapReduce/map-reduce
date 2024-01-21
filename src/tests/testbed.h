@@ -52,7 +52,7 @@ void test_case_3()
     mapreduce::map_reduce(config);
 }
 
-void test_case_4()
+void test_case_randomly_crashing()
 {
     std::cerr << "Test case 4" << std::endl;
     mapreduce::Config config;
@@ -66,7 +66,7 @@ void test_case_4()
     mapreduce::map_reduce(config);
 }
 
-void test_case_5()
+void test_case_inter_write_crashing()
 {
     std::cerr << "Test case 5" << std::endl;
     mapreduce::Config config;
@@ -78,6 +78,19 @@ void test_case_5()
     config.set_num_reducers(6);
 
     mapreduce::map_reduce(config);
+}
+
+void test_case_huge() {
+    std::cerr << "Test case 6" << std::endl;
+    mapreduce::Config config;
+    config.set_input_filepath(FS + "input-huge.txt");
+    config.set_output_filepath(FS + "output-huge.txt");
+    config.set_mapper_execpath(FS + "mapper_inter_write_crashing_huge");
+    config.set_reducer_execpath(FS + "reducer_inter_write_crashing_huge");
+    config.set_split_size_bytes(50);
+    config.set_num_reducers(50);
+
+    mapreduce::map_reduce(config);    
 }
 
 #endif // TESTBED_H
