@@ -87,7 +87,7 @@ void log_message(
     request.set_log_name(log_name);
 
     log_entry->set_text_payload(message);
-    log_entry->set_severity(google::logging::type::LogSeverity::DEFAULT);
+    log_entry->set_severity(severity);
     log_entry->mutable_resource()->set_type(resource_type);
 
     auto response = client.WriteLogEntries(request);
