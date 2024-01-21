@@ -11,8 +11,6 @@ public:
 
         sleep(2);
         while (get_next_pair(key, val)) {
-            std::cerr << "[LONG REDUCER] key: " << key << ", val: " << val
-                      << std::endl;
             emit(key, val);
         }
     }

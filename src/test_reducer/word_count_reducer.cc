@@ -13,8 +13,6 @@ public:
         std::map<mapreduce::key_t, long long> reduce_result;
 
         while (get_next_pair(key, val)) {
-            std::cerr << "[ADDING REDUCER] key: " << key << ", val: " << val
-                      << std::endl;
             reduce_result[key] += std::stoll(val);
         }
         for (auto const& [key, val] : reduce_result) {

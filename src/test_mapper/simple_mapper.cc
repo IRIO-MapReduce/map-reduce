@@ -10,8 +10,6 @@ public:
         mapreduce::val_t val;
 
         while (get_next_pair(key, val)) {
-            std::cerr << "[SIMPLE MAPPER IMPL] key: " << key << ", val: " << val
-                      << std::endl;
             emit(key, val);
         }
     }

@@ -21,8 +21,6 @@ public:
         bool fail = (rand_in_range(0, odds - 1) == 0);
 
         while (get_next_pair(key, val)) {
-            std::cerr << "[MAPPER_INTER_WRITE_CRASHING IMPL] key: " << key
-                      << ", val: " << val << std::endl;
             emit(key, val);
 
             wait_cpu(wait_n);

@@ -22,8 +22,6 @@ public:
         }
 
         while (get_next_pair(key, val)) {
-            std::cerr << "[MAPPER_RANDOMLY_CRASHING IMPL] key: " << key
-                      << ", val: " << val << std::endl;
             emit(key, val);
             wait_cpu(wait_n);
         }

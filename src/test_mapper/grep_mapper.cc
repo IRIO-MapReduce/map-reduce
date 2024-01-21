@@ -12,8 +12,6 @@ public:
         std::string word = "MapReduce";
 
         while (get_next_pair(key, val)) {
-            std::cerr << "[LONG MAPPER] key: " << key << ", val: " << val
-                      << std::endl;
             if (val.find(word) != std::string::npos) {
                 emit(key, val);
             }
