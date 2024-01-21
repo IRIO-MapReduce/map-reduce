@@ -52,7 +52,7 @@ void Mapper::close_files()
         input_file.close();
         for (uint32_t i = 0; i < num_reducers; i++)
             output_files[i].close();
-    } catch (std::exception const& e) {
+    } catch (std::exception& e) {
         log_message("[MAPPER] Error closing file " + input_filepath,
             google::logging::type::LogSeverity::ERROR);
 
@@ -76,7 +76,7 @@ void Mapper::close_files()
                 std::filesystem::rename(
                     filepath.c_str(), final_filepath.c_str());
             } catch (std::exception& e) {
-                log_message("[REDUCER] Error renaming file " + filepath + " to "
+                log_message("[MAPPER] Error renaming file " + filepath + " to "
                         + final_filepath + ", error code: " + e.what(),
                     google::logging::type::LogSeverity::ERROR);
 

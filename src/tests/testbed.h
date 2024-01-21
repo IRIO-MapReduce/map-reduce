@@ -82,7 +82,8 @@ void test_case_inter_write_crashing()
     mapreduce::map_reduce(config);
 }
 
-void test_case_huge() {
+void test_case_huge()
+{
     std::cerr << "Test case 6" << std::endl;
     mapreduce::Config config;
     config.set_input_filepath(FS + "input-huge.txt");
@@ -92,10 +93,11 @@ void test_case_huge() {
     config.set_split_size_bytes(50);
     config.set_num_reducers(50);
 
-    mapreduce::map_reduce(config);    
+    mapreduce::map_reduce(config);
 }
 
-void test_case_enormous() {
+void test_case_enormous()
+{
     std::cerr << "Test case 7" << std::endl;
     mapreduce::Config config;
     config.set_input_filepath(FS + "input-huge.txt");
@@ -105,7 +107,7 @@ void test_case_enormous() {
     config.set_split_size_bytes(16000000);
     config.set_num_reducers(50);
 
-    mapreduce::map_reduce(config); 
+    mapreduce::map_reduce(config);
 }
 
 #endif // TESTBED_H

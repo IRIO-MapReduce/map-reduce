@@ -51,7 +51,6 @@ private:
      */
     void close_files();
 
-private:
     uint32_t group_id;
     uint32_t job_id;
     uint32_t num_reducers;

@@ -40,6 +40,18 @@ protected:
     void emit(key_t const& key, val_t const& value);
 
 private:
+    /**
+     * Opens output file. Should be invoked once per map(). Speeds up reading.
+     * Input files are opened dynamically.
+     */
+    void open_file();
+
+    /**
+     * Closes output file. Should be invoked once per map(). Speeds up writing.
+     * Input files are closed dynamically.
+     */
+    void close_file();
+
     uint32_t group_id;
     uint32_t job_id;
     uint32_t num_mappers;
@@ -48,6 +60,7 @@ private:
     std::string job_manager_address;
     std::string hash;
     std::fstream input_file;
+    std::ofstream output_file;
     uint32_t current_mapper = 0;
 };
 
