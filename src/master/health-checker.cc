@@ -62,8 +62,6 @@ HealthStatus HealthChecker::get_status(std::string ip)
 
 HealthStatus HealthChecker::check(std::string ip)
 {
-    // log_message("[HEALTH CHECKER] Sending health check to worker: " + ip + ".");
-
     std::unique_ptr<Health::Stub> health_stub(Health::NewStub(
         grpc::CreateChannel(ip, grpc::InsecureChannelCredentials())));
 
@@ -79,12 +77,8 @@ HealthStatus HealthChecker::check(std::string ip)
 
     HealthStatus health_status = UNHEALTHY;
     if (status.ok()) {
-        // log_message("[HEALTH CHECKER] Response from " + ip + " received.");
         health_status = response.status();
     }
-
-    // log_message("[HEALTH CHECKER] Health status of " + ip + ": "
-    //     + std::to_string(health_status));
 
     return health_status;
 }

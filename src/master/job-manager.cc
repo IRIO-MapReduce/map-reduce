@@ -34,9 +34,6 @@ uint32_t JobManager::register_new_jobs_group(
 
 void JobManager::add_job(uint32_t group_id, JobRequest const& request)
 {
-    // log_message("[JOB MANAGER] Adding job (" + std::to_string(group_id) + ",
-    // "
-    //     + std::to_string(request.job_id()) + ")");
     {
         std::shared_lock<std::shared_mutex> lock(groups_lock);
 
@@ -57,13 +54,8 @@ void JobManager::add_job(uint32_t group_id, JobRequest const& request)
 
     Response response;
     grpc::ClientContext context;
-
-    // log_message(
-    //     "[JOB MANAGER] Sending JobRequest to Worker (" + worker_ip + ")");
-
     grpc::Status status = stub->ProcessJobRequest(&context, request, &response);
 
-    // assert(status.ok());
     if (!status.ok()) {
         log_message("[JOB MANAGER] Worker (" + worker_ip
                 + ") failed to process JobRequest",
@@ -72,8 +64,6 @@ void JobManager::add_job(uint32_t group_id, JobRequest const& request)
         std::this_thread::sleep_for(std::chrono::seconds(1));
         add_job(group_id, request);
     }
-
-    // log_message("[JOB MANAGER] Request sent successfully");
 }
 
 void JobManager::wait_for_completion(uint32_t group_id)
@@ -91,24 +81,15 @@ void JobManager::wait_for_completion(uint32_t group_id)
         group = job_groups[group_id];
     }
 
-    // log_message("[JOB MANAGER] Waiting for group (" +
-    // std::to_string(group_id)
-    //     + ") to complete");
     while (!group->wait_for_completion(TIMEOUT)) {
-        auto unfinished_jobs = group->get_unfinished_jobs();
         log_message(
             "[JOB MANAGER] Group (" + std::to_string(group_id) + ") timed out",
             google::logging::type::LogSeverity::WARNING);
-        for (const auto& job : unfinished_jobs) {
-            // log_message("[JOB MANAGER] Job (" +
-            // std::to_string(job.group_id())
-            //         + ", " + std::to_string(job.job_id()) + ") timed out",
-            //     google::logging::type::LogSeverity::WARNING);
+
+        auto unfinished_jobs = group->get_unfinished_jobs();
+        for (const auto& job : unfinished_jobs)
             add_job(group_id, job);
-        }
     }
-    log_message("[JOB MANAGER] Group (" + std::to_string(group_id)
-        + ") completed successfully");
 
     std::unique_lock<std::shared_mutex> lock(groups_lock);
     job_groups.erase(group_id);
@@ -116,9 +97,8 @@ void JobManager::wait_for_completion(uint32_t group_id)
 
 void JobManager::mark_completed(uint32_t group_id, uint32_t job_id)
 {
-    // log_message("[JOB MANAGER] Job (" + std::to_string(group_id) + ", "
-    //     + std::to_string(job_id) + ") completed");
     std::shared_lock<std::shared_mutex> lock(groups_lock);
+
     /**
      * Could be already completed if timed out.
      */
