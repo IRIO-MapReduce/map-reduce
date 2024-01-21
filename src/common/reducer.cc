@@ -9,6 +9,7 @@
 #include "mapreduce.h"
 #include "reducer.h"
 #include "utils.h"
+#include "cloud-utils.h"
 
 using grpc::Channel;
 using grpc::ClientContext;

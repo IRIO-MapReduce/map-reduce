@@ -62,7 +62,7 @@ target_sources(client PRIVATE ../common/mapreduce.cc)
 target_sources(client PRIVATE ../common/cloud-utils.cc)
 
 add_executable(testbed testbed.cc)
-target_link_libraries(testbed PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute)
+target_link_libraries(testbed PRIVATE grpc_mapreduce_proto gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotobuf google-cloud-cpp::compute google-cloud-cpp::logging)
 
 target_include_directories(testbed PRIVATE ${GENERATED_DIR})
 target_include_directories(testbed PRIVATE ../common)
