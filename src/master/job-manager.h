@@ -60,7 +60,7 @@ public:
     */
     Status NotifyJobFinished(ServerContext* context, JobFinishedRequest const* request, Response* response) override {
         auto address = uri_to_url(context->peer());
-        std::cerr << "[JOB MANAGER] Received JobFinished by: " << address << std::endl;
+        log_message("[JOB MANAGER] Received JobFinished by: " + address);
         load_balancer.notify_worker_finished(address);
         mark_completed(request->group_id(), request->job_id());
         return Status::OK;

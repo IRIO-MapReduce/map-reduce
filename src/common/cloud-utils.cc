@@ -73,28 +73,38 @@ std::string uri_to_url(std::string const& address) {
 
 void log_message(
     std::string const& message, 
-    google::logging::type::LogSeverity severity = google::logging::type::LogSeverity::DEFAULT,
-    std::string const& name = "mapreduce",
-    std::string const& resource_type = "global"
+    google::logging::type::LogSeverity severity,
+    std::map<std::string, std::string> const& labels,
+    std::string const& name,
+    std::string const& resource_type
 ) {
-    namespace logging = ::google::cloud::logging_v2;
-    auto client = logging::LoggingServiceV2Client(logging::MakeLoggingServiceV2Connection());
 
-    auto request = google::logging::v2::WriteLogEntriesRequest();
-    auto log_entry = request.add_entries();
-    auto log_name = "projects/" + PROJECT_ID + "/logs/" + name;
-    
-    request.set_log_name(log_name);
+    #ifdef LOCAL
+        std::cerr << message << std::endl;
+    #else
+        namespace logging = ::google::cloud::logging_v2;
+        auto client = logging::LoggingServiceV2Client(logging::MakeLoggingServiceV2Connection());
 
-    log_entry->set_text_payload(message);
-    log_entry->set_severity(severity);
-    log_entry->mutable_resource()->set_type(resource_type);
+        auto request = google::logging::v2::WriteLogEntriesRequest();
+        auto log_entry = request.add_entries();
+        auto log_name = "projects/" + PROJECT_ID + "/logs/" + name;
+        
+        request.set_log_name(log_name);
 
-    auto response = client.WriteLogEntries(request);
+        log_entry->set_text_payload(message);
+        log_entry->set_severity(severity);
+        log_entry->mutable_resource()->set_type(resource_type);
 
-    if (!response.ok()) {
-        std::cerr << "Failed to log message: " << response.status().message() << std::endl;
-    }
+        for (auto const& [key, value] : labels) {
+            (*log_entry->mutable_labels())[key] = value;
+        }
+
+        auto response = client.WriteLogEntries(request);
+
+        if (!response.ok()) {
+            std::cerr << "Failed to log message: " << response.status().message() << std::endl;
+        }
+    #endif
 }
 
 } // mapreduce
