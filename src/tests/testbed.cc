@@ -2,8 +2,6 @@
 
 #include "testbed.h"
 
-#define LOCAL
-
 typedef void (*test_case_fun)();
 
 const test_case_fun test_cases[] = {
