@@ -96,8 +96,8 @@ void test_case_huge() {
 void test_case_enormous() {
     std::cerr << "Test case 7" << std::endl;
     mapreduce::Config config;
-    config.set_input_filepath(FS + "input-huge.txt");
-    config.set_output_filepath(FS + "output-huge.txt");
+    config.set_input_filepath(FS + "input-enormous.txt");
+    config.set_output_filepath(FS + "output-enormous.txt");
     config.set_mapper_execpath(FS + "mapper_inter_write_crashing");
     config.set_reducer_execpath(FS + "reducer_inter_write_crashing");
     config.set_split_size_bytes(16000000);
@@ -118,5 +118,6 @@ void test_case_load() {
 
     mapreduce::map_reduce(config); 
 }
+
 
 #endif // TESTBED_H
