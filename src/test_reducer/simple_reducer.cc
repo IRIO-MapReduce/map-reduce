@@ -17,7 +17,6 @@ public:
 
 int main(int argc, char** argv)
 {
-    std::cerr << "[REDUCER WORKER] Starting binary" << std::endl;
     SimpleReducer reducer;
 
     reducer.start(argc, argv);

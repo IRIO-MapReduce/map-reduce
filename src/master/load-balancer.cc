@@ -116,9 +116,9 @@ void LoadBalancer::start()
 
     while (true) {
         refresh_workers();
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         check_unhealthy_workers();
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 
     health_checker_thread.join();

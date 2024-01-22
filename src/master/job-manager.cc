@@ -81,7 +81,8 @@ void JobManager::wait_for_completion(uint32_t group_id)
         group = job_groups[group_id];
     }
 
-    while (!group->wait_for_completion(TIMEOUT)) {
+    uint32_t iter = 1;
+    while (!group->wait_for_completion(TIMEOUT * iter++)) {
         log_message(
             "[JOB MANAGER] Group (" + std::to_string(group_id) + ") timed out",
             google::logging::type::LogSeverity::WARNING);

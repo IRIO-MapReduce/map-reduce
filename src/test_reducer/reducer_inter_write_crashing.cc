@@ -6,8 +6,6 @@
 
 int main(int argc, char** argv)
 {
-    std::cerr << "[REDUCER_INTER_WRITE_CRASHING WORKER] Starting binary"
-              << std::endl;
     ReducerInterWriteCrashing reducer(7, 2, 500);
 
     reducer.start(argc, argv);

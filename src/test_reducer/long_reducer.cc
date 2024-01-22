@@ -19,7 +19,6 @@ public:
 int main(int argc, char** argv)
 {
     sleep(10);
-    std::cerr << "[REDUCER WORKER] Starting binary" << std::endl;
     LongReducer reducer;
 
     reducer.start(argc, argv);

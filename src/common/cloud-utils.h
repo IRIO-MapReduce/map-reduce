@@ -8,7 +8,7 @@
 
 namespace mapreduce {
 
-const std::string PROJECT_ID = "pb-map-reduce";
+const std::string PROJECT_ID = "irio-map-reduce";
 const std::string NETWORK_NAME = "nic0";
 const std::string WORKER_PREFIX = "worker-";
 const std::string MASTER_PREFIX = "master-";

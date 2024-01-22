@@ -21,7 +21,6 @@ public:
 
 int main(int argc, char** argv)
 {
-    std::cerr << "[MAPPER WORKER] Starting binary" << std::endl;
     LongMapper mapper;
 
     mapper.start(argc, argv);

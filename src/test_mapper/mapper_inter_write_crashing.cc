@@ -5,8 +5,6 @@
 
 int main(int argc, char** argv)
 {
-    std::cerr << "[MAPPER_INTER_WRITE_CRASHING WORKER] Starting binary"
-              << std::endl;
     MapperInterWriteCrashing mapper(7, 2, 500);
 
     mapper.start(argc, argv);
