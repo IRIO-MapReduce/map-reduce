@@ -90,7 +90,6 @@ void JobManager::wait_for_completion(uint32_t group_id)
 
             for (const auto& job : unfinished_jobs)
                 add_job(group_id, job);
-        }
     }
 
     std::unique_lock<std::shared_mutex> lock(groups_lock);
