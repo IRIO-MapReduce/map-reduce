@@ -71,7 +71,7 @@ void JobManager::wait_for_completion(uint32_t group_id)
     /**
      * TODO: Discuss timeout and include it somewhere else in the config.
      */
-    static constexpr uint32_t TIMEOUT = 5;
+    static constexpr uint32_t TIMEOUT = 3;
 
     std::shared_ptr<JobGroup> group;
 
@@ -81,15 +81,20 @@ void JobManager::wait_for_completion(uint32_t group_id)
         group = job_groups[group_id];
     }
 
-    uint32_t iter = 1;
-    while (!group->wait_for_completion(TIMEOUT * iter++)) {
-        log_message(
-            "[JOB MANAGER] Group (" + std::to_string(group_id) + ") timed out",
-            google::logging::type::LogSeverity::WARNING);
-
+    uint32_t iter = 2;
+    while (!group->wait_for_completion(TIMEOUT * iter)) {
         auto unfinished_jobs = group->get_unfinished_jobs();
-        for (const auto& job : unfinished_jobs)
-            add_job(group_id, job);
+
+        if (0 < unfinished_jobs.size() && unfinished_jobs.size() * 2 <= iter) {
+            log_message("[JOB MANAGER] Group (" + std::to_string(group_id)
+                    + ") timed out, resubmitting jobs.",
+                google::logging::type::LogSeverity::WARNING);
+
+            for (const auto& job : unfinished_jobs)
+                add_job(group_id, job);
+        }
+
+        iter++;
     }
 
     std::unique_lock<std::shared_mutex> lock(groups_lock);
